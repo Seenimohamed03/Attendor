@@ -1,0 +1,433 @@
+{% extends 'attendance_core/base.html' %}
+
+{% block title %}Manage News - Student Attendance System{% endblock %}
+
+{% block page_title %}Manage News{% endblock %}
+
+{% block extra_css %}
+<style>
+    .news-container {
+        max-width: 900px;
+        margin: 0 auto;
+        padding: 1rem;
+    }
+
+    .news-header {
+        background: linear-gradient(135deg, #4CAF50 0%, #2196F3 100%);
+        border-radius: 0.75rem;
+        padding: 1.25rem;
+        color: white;
+        margin-bottom: 1.5rem;
+        position: relative;
+        overflow: hidden;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    }
+
+    .news-stats {
+        display: flex;
+        justify-content: space-around;
+        gap: 0.75rem;
+        margin-top: 1rem;
+    }
+
+    .stat-card {
+        background: rgba(255, 255, 255, 0.1);
+        padding: 1rem;
+        border-radius: 0.75rem;
+        text-align: center;
+        min-width: 120px;
+        backdrop-filter: blur(5px);
+    }
+
+    .stat-value {
+        font-size: 1.5rem;
+        font-weight: 600;
+        margin-bottom: 0.25rem;
+    }
+
+    .stat-label {
+        font-size: 0.75rem;
+        opacity: 0.9;
+    }
+
+    /* Create News Section */
+    .create-news-section {
+        background: white;
+        border-radius: 0.75rem;
+        padding: 1.25rem;
+        margin-bottom: 1.5rem;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    .section-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 1.25rem;
+        padding-bottom: 0.75rem;
+        border-bottom: 1px solid #e9ecef;
+    }
+
+    .section-title {
+        font-size: 1.25rem;
+        font-weight: 600;
+        color: #2c3e50;
+        margin: 0;
+    }
+
+    .section-icon {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        background: #f8f9fa;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #4CAF50;
+        font-size: 0.875rem;
+    }
+
+    /* News List Section */
+    .news-list-section {
+        background: white;
+        border-radius: 0.75rem;
+        padding: 1.25rem;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    .news-list {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+    .news-item {
+        background: #f8f9fa;
+        border-radius: 0.5rem;
+        padding: 1rem;
+        transition: all 0.3s ease;
+    }
+
+    .news-item:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+
+    .news-item-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 0.75rem;
+    }
+
+    .news-item-title {
+        font-size: 1.125rem;
+        font-weight: 600;
+        color: #2c3e50;
+        margin: 0;
+    }
+
+    .news-item-meta {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        color: #6c757d;
+        font-size: 0.75rem;
+    }
+
+    .news-item-content {
+        color: #495057;
+        margin-bottom: 0.75rem;
+        line-height: 1.5;
+        font-size: 0.875rem;
+    }
+
+    .news-image {
+        width: 100%;
+        height: 150px;
+        object-fit: cover;
+        border-radius: 0.5rem;
+        margin-bottom: 0.75rem;
+    }
+
+    /* Form Styles */
+    .news-form {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+    .form-group {
+        margin-bottom: 1rem;
+    }
+
+    .form-label {
+        font-weight: 500;
+        color: #2c3e50;
+        margin-bottom: 0.25rem;
+        display: block;
+        font-size: 0.875rem;
+    }
+
+    .form-control {
+        border: 1px solid #e9ecef;
+        border-radius: 0.5rem;
+        padding: 0.5rem 0.75rem;
+        width: 100%;
+        transition: all 0.3s ease;
+        font-size: 0.875rem;
+    }
+
+    .form-control:focus {
+        border-color: #4CAF50;
+        box-shadow: 0 0 0 0.2rem rgba(76, 175, 80, 0.25);
+    }
+
+    textarea.form-control {
+        min-height: 100px;
+        resize: vertical;
+    }
+
+    .image-upload-container {
+        position: relative;
+        margin-bottom: 0.75rem;
+    }
+
+    .image-preview {
+        width: 100%;
+        height: 150px;
+        border: 1px dashed #e9ecef;
+        border-radius: 0.5rem;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        color: #6c757d;
+        margin-top: 0.75rem;
+        overflow: hidden;
+        font-size: 0.75rem;
+    }
+
+    .image-preview img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    .image-preview i {
+        font-size: 2rem;
+        margin-bottom: 0.25rem;
+    }
+
+    .form-check {
+        margin-top: 0.75rem;
+    }
+
+    .form-check-input {
+        margin-right: 0.5rem;
+    }
+
+    .form-check-label {
+        color: #495057;
+        font-size: 0.875rem;
+    }
+
+    .btn-save {
+        background: linear-gradient(90deg, #4CAF50 0%, #2196F3 100%);
+        border: none;
+        border-radius: 0.5rem;
+        padding: 0.5rem 1rem;
+        color: white;
+        font-weight: 500;
+        width: 100%;
+        transition: all 0.3s ease;
+        font-size: 0.875rem;
+    }
+
+    .btn-save:hover {
+        background: linear-gradient(90deg, #45a049 0%, #1976D2 100%);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    }
+
+    .btn-save:disabled {
+        opacity: 0.7;
+        cursor: not-allowed;
+        transform: none;
+    }
+
+    /* Empty State */
+    .empty-state {
+        text-align: center;
+        padding: 2rem;
+        color: #6c757d;
+    }
+
+    .empty-state-icon {
+        font-size: 2rem;
+        margin-bottom: 0.75rem;
+        color: #e9ecef;
+    }
+
+    @media (max-width: 768px) {
+        .news-container {
+            padding: 0.75rem;
+        }
+
+        .news-header {
+            padding: 1rem;
+        }
+
+        .news-stats {
+            flex-direction: column;
+        }
+
+        .create-news-section,
+        .news-list-section {
+            padding: 1rem;
+        }
+
+        .news-item-header {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 0.25rem;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="news-container">
+    <!-- News Header with Stats -->
+    <div class="news-header">
+        <h1 class="text-center mb-4">Manage News</h1>
+        <div class="news-stats">
+            <div class="stat-card">
+                <div class="stat-value">{{ total_news }}</div>
+                <div class="stat-label">Total News</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value">{{ news_this_month }}</div>
+                <div class="stat-label">This Month</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value">{{ news_today }}</div>
+                <div class="stat-label">Today</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Create News Section -->
+    <div class="create-news-section">
+        <div class="section-header">
+            <h2 class="section-title">Create News</h2>
+            <div class="section-icon">
+                <i class="fas fa-newspaper"></i>
+            </div>
+        </div>
+        <form method="post" enctype="multipart/form-data" class="news-form">
+            {% csrf_token %}
+            <div class="form-group">
+                <label class="form-label" for="title">Title</label>
+                <input type="text" class="form-control" id="title" name="title" required placeholder="Enter news title">
+            </div>
+            <div class="form-group">
+                <label class="form-label" for="description">Description</label>
+                <textarea class="form-control" id="description" name="description" rows="8" required placeholder="Enter news description"></textarea>
+            </div>
+            <div class="form-group">
+                <label class="form-label" for="image">Image (Optional)</label>
+                <div class="image-upload-container">
+                    <input type="file" class="form-control" id="image" name="image" accept="image/*">
+                    <div class="image-preview" id="imagePreview">
+                        <i class="fas fa-image"></i>
+                        <span>No image selected</span>
+                    </div>
+                </div>
+            </div>
+            <div class="form-group">
+                <div class="form-check">
+                    <input type="checkbox" class="form-check-input" id="notify_students" name="notify_students" checked>
+                    <label class="form-check-label" for="notify_students">Notify all students about this news</label>
+                </div>
+            </div>
+            <button type="submit" class="btn btn-save">
+                <i class="fas fa-save me-2"></i>Post News
+            </button>
+        </form>
+    </div>
+
+    <!-- News List Section -->
+    <div class="news-list-section">
+        <div class="section-header">
+            <h2 class="section-title">News List</h2>
+            <div class="section-icon">
+                <i class="fas fa-list"></i>
+            </div>
+        </div>
+        <div class="news-list">
+            {% if news_list %}
+                {% for news in news_list %}
+                <div class="news-item">
+                    <div class="news-item-header">
+                        <h3 class="news-item-title">{{ news.title }}</h3>
+                        <div class="news-item-meta">
+                            <span><i class="fas fa-calendar me-1"></i>{{ news.created_at|date:"M d, Y" }}</span>
+                            <span><i class="fas fa-user me-1"></i>{{ news.posted_by.get_full_name }}</span>
+                        </div>
+                    </div>
+                    {% if news.image %}
+                    <img src="{{ news.image.url }}" alt="{{ news.title }}" class="news-image">
+                    {% endif %}
+                    <div class="news-item-content">
+                        {{ news.description|truncatewords:50 }}
+                    </div>
+                </div>
+                {% endfor %}
+            {% else %}
+                <div class="empty-state">
+                    <i class="fas fa-newspaper empty-state-icon"></i>
+                    <p>No news articles found.</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.querySelector('.news-form');
+    const imageInput = document.getElementById('image');
+    const imagePreview = document.getElementById('imagePreview');
+    
+    // Handle form submission
+    if (form) {
+        form.addEventListener('submit', function(e) {
+            const submitButton = form.querySelector('button[type="submit"]');
+            if (submitButton) {
+                submitButton.disabled = true;
+                submitButton.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Posting...';
+            }
+        });
+    }
+    
+    // Handle image preview
+    if (imageInput && imagePreview) {
+        imageInput.addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    imagePreview.innerHTML = `<img src="${e.target.result}" alt="Preview">`;
+                };
+                reader.readAsDataURL(file);
+            } else {
+                imagePreview.innerHTML = '<i class="fas fa-image"></i><span>No image selected</span>';
+            }
+        });
+    }
+});
+</script>
+{% endblock %} 

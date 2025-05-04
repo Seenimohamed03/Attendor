@@ -1,0 +1,109 @@
+{% extends 'attendance_core/base.html' %}
+{% load static %}
+
+{% block title %}Leave Request{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3 d-flex justify-content-between align-items-center">
+                    <h6 class="m-0 font-weight-bold text-primary">Submit Leave Request</h6>
+                </div>
+                <div class="card-body">
+                    <form method="post" enctype="multipart/form-data">
+                        {% csrf_token %}
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="id_from_date" class="form-label">From Date</label>
+                                    <input type="date" class="form-control" id="id_from_date" name="from_date" required>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="id_to_date" class="form-label">To Date</label>
+                                    <input type="date" class="form-control" id="id_to_date" name="to_date" required>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="id_reason" class="form-label">Reason</label>
+                            <textarea class="form-control" id="id_reason" name="reason" rows="4" required></textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label for="id_document" class="form-label">Supporting Document (Optional)</label>
+                            <input type="file" class="form-control" id="id_document" name="document" accept=".pdf,.jpg,.jpeg,.png">
+                            <small class="text-muted">Accepted formats: PDF, JPG, PNG (Max size: 5MB)</small>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Submit Request</button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Leave Requests History -->
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Leave Requests History</h6>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-bordered" id="leaveHistoryTable" width="100%" cellspacing="0">
+                            <thead>
+                                <tr>
+                                    <th>From Date</th>
+                                    <th>To Date</th>
+                                    <th>Reason</th>
+                                    <th>Document</th>
+                                    <th>Status</th>
+                                    <th>Submitted On</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for request in leave_requests %}
+                                <tr>
+                                    <td>{{ request.from_date|date:"F j, Y" }}</td>
+                                    <td>{{ request.to_date|date:"F j, Y" }}</td>
+                                    <td>{{ request.reason|truncatewords:10 }}</td>
+                                    <td>
+                                        {% if request.document %}
+                                            <a href="{{ request.document.url }}" class="btn btn-sm btn-outline-primary" target="_blank">
+                                                <i class="fas fa-file-alt"></i> View
+                                            </a>
+                                        {% else %}
+                                            <span class="text-muted">No document</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if request.status == 'PENDING' %}
+                                            <span class="badge bg-warning">Pending</span>
+                                        {% elif request.status == 'APPROVED' %}
+                                            <span class="badge bg-success">Approved</span>
+                                        {% else %}
+                                            <span class="badge bg-danger">Rejected</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>{{ request.created_at|date:"F j, Y" }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    $(document).ready(function() {
+        $('#leaveHistoryTable').DataTable({
+            "order": [[5, "desc"]], // Sort by submission date
+            "pageLength": 10
+        });
+    });
+</script>
+{% endblock %} 

@@ -1,0 +1,148 @@
+{% extends 'attendance_core/base.html' %}
+{% load static %}
+
+{% block title %}Manage Leave Requests{% endblock %}
+
+{% block page_title %}Leave Requests Management{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3 d-flex justify-content-between align-items-center">
+                    <h6 class="m-0 font-weight-bold text-primary">Leave Requests Management</h6>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-bordered" id="leaveRequestsTable" width="100%" cellspacing="0">
+                            <thead>
+                                <tr>
+                                    <th>Student</th>
+                                    <th>From Date</th>
+                                    <th>To Date</th>
+                                    <th>Reason</th>
+                                    <th>Document</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for request in leave_requests %}
+                                <tr>
+                                    <td>{{ request.student.user.get_full_name }}</td>
+                                    <td>{{ request.from_date|date:"F j, Y" }}</td>
+                                    <td>{{ request.to_date|date:"F j, Y" }}</td>
+                                    <td>{{ request.reason|truncatewords:10 }}</td>
+                                    <td>
+                                        {% if request.document %}
+                                            <a href="{{ request.document.url }}" class="btn btn-sm btn-outline-primary" target="_blank">
+                                                <i class="fas fa-file-alt"></i> View Document
+                                            </a>
+                                        {% else %}
+                                            <span class="text-muted">No document</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if request.status == 'PENDING' %}
+                                            <span class="badge bg-warning">Pending</span>
+                                        {% elif request.status == 'APPROVED' %}
+                                            <span class="badge bg-success">Approved</span>
+                                        {% else %}
+                                            <span class="badge bg-danger">Rejected</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if request.status == 'PENDING' %}
+                                        <form method="post" class="d-inline">
+                                            {% csrf_token %}
+                                            <input type="hidden" name="leave_id" value="{{ request.id }}">
+                                            <button type="submit" name="action" value="APPROVED" class="btn btn-sm btn-success">
+                                                <i class="fas fa-check"></i> Approve
+                                            </button>
+                                            <button type="submit" name="action" value="REJECTED" class="btn btn-sm btn-danger">
+                                                <i class="fas fa-times"></i> Reject
+                                            </button>
+                                        </form>
+                                        {% endif %}
+                                        <button type="button" class="btn btn-sm btn-info" data-bs-toggle="modal" data-bs-target="#requestModal{{ request.id }}">
+                                            <i class="fas fa-eye"></i> View
+                                        </button>
+                                    </td>
+                                </tr>
+
+                                <!-- Request Details Modal -->
+                                <div class="modal fade" id="requestModal{{ request.id }}" tabindex="-1" aria-labelledby="requestModalLabel{{ request.id }}" aria-hidden="true">
+                                    <div class="modal-dialog modal-lg">
+                                        <div class="modal-content">
+                                            <div class="modal-header bg-gradient-primary text-white">
+                                                <h5 class="modal-title" id="requestModalLabel{{ request.id }}">Leave Request Details</h5>
+                                                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                                            </div>
+                                            <div class="modal-body">
+                                                <div class="row">
+                                                    <div class="col-md-6">
+                                                        <p><strong>Student:</strong> {{ request.student.user.get_full_name }}</p>
+                                                        <p><strong>From Date:</strong> {{ request.from_date|date:"F j, Y" }}</p>
+                                                        <p><strong>To Date:</strong> {{ request.to_date|date:"F j, Y" }}</p>
+                                                        <p><strong>Status:</strong> 
+                                                            {% if request.status == 'PENDING' %}
+                                                                <span class="badge bg-warning">Pending</span>
+                                                            {% elif request.status == 'APPROVED' %}
+                                                                <span class="badge bg-success">Approved</span>
+                                                            {% else %}
+                                                                <span class="badge bg-danger">Rejected</span>
+                                                            {% endif %}
+                                                        </p>
+                                                        <p><strong>Submitted On:</strong> {{ request.created_at|date:"F j, Y" }}</p>
+                                                    </div>
+                                                    <div class="col-md-6">
+                                                        <p><strong>Reason:</strong></p>
+                                                        <div class="border rounded p-3 bg-light">
+                                                            {{ request.reason|linebreaks }}
+                                                        </div>
+                                                        {% if request.document %}
+                                                        <div class="mt-3">
+                                                            <p><strong>Supporting Document:</strong></p>
+                                                            <div class="d-flex align-items-center">
+                                                                <a href="{{ request.document.url }}" class="btn btn-outline-primary me-2" target="_blank">
+                                                                    <i class="fas fa-file-alt me-1"></i>View Document
+                                                                </a>
+                                                                <span class="text-muted small">({{ request.document.name|slice:"-4:"|upper }})</span>
+                                                            </div>
+                                                        </div>
+                                                        {% endif %}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="modal-footer">
+                                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="6" class="text-center">No leave requests found</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    $(document).ready(function() {
+        $('#leaveRequestsTable').DataTable({
+            "order": [[5, "asc"], [1, "asc"]], // Sort by status and from date
+            "pageLength": 10
+        });
+    });
+</script>
+{% endblock %} 

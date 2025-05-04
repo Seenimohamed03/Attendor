@@ -1,0 +1,369 @@
+{% extends 'attendance_core/base.html' %}
+
+{% block title %}Account Settings - Student Attendance System{% endblock %}
+
+{% block page_title %}Account Settings{% endblock %}
+
+{% block extra_css %}
+<style>
+    .settings-container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 2rem;
+    }
+
+    .settings-section {
+        background: white;
+        border-radius: 1rem;
+        padding: 2rem;
+        margin-bottom: 2rem;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    .section-header {
+        display: flex;
+        align-items: center;
+        margin-bottom: 2rem;
+        padding-bottom: 1rem;
+        border-bottom: 2px solid #f0f2f5;
+    }
+
+    .section-icon {
+        width: 48px;
+        height: 48px;
+        border-radius: 12px;
+        background: linear-gradient(135deg, #4CAF50 0%, #2196F3 100%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-right: 1.5rem;
+        color: white;
+        font-size: 1.25rem;
+    }
+
+    .section-title {
+        font-size: 1.5rem;
+        font-weight: 600;
+        color: #2c3e50;
+        margin: 0;
+    }
+
+    .section-description {
+        color: #6c757d;
+        margin-top: 0.5rem;
+    }
+
+    .form-group {
+        margin-bottom: 1.5rem;
+    }
+
+    .form-label {
+        font-weight: 500;
+        color: #2c3e50;
+        margin-bottom: 0.5rem;
+        display: block;
+    }
+
+    .form-control {
+        border: 2px solid #e9ecef;
+        border-radius: 0.5rem;
+        padding: 0.75rem 1rem;
+        width: 100%;
+        transition: all 0.3s ease;
+    }
+
+    .form-control:focus {
+        border-color: #4CAF50;
+        box-shadow: 0 0 0 0.2rem rgba(76, 175, 80, 0.25);
+    }
+
+    .btn-save {
+        background: linear-gradient(90deg, #4CAF50 0%, #2196F3 100%);
+        border: none;
+        border-radius: 0.5rem;
+        padding: 0.75rem 1.5rem;
+        color: white;
+        font-weight: 500;
+        transition: all 0.3s ease;
+    }
+
+    .btn-save:hover {
+        background: linear-gradient(90deg, #45a049 0%, #1976D2 100%);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    }
+
+    .btn-save:disabled {
+        opacity: 0.7;
+        cursor: not-allowed;
+        transform: none;
+    }
+
+    .form-check {
+        margin-bottom: 1rem;
+        padding-left: 2.5rem;
+    }
+
+    .form-check-input {
+        width: 1.5rem;
+        height: 1.5rem;
+        margin-left: -2.5rem;
+        margin-top: 0.25rem;
+        border: 2px solid #e9ecef;
+    }
+
+    .form-check-input:checked {
+        background-color: #4CAF50;
+        border-color: #4CAF50;
+    }
+
+    .form-check-label {
+        font-weight: 500;
+        color: #2c3e50;
+    }
+
+    .settings-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 1.5rem;
+    }
+
+    .settings-card {
+        background: #f8f9fa;
+        border-radius: 0.75rem;
+        padding: 1.5rem;
+        transition: all 0.3s ease;
+    }
+
+    .settings-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+
+    .card-title {
+        font-size: 1.125rem;
+        font-weight: 600;
+        color: #2c3e50;
+        margin-bottom: 1rem;
+    }
+
+    .card-description {
+        color: #6c757d;
+        font-size: 0.875rem;
+        margin-bottom: 1.5rem;
+    }
+
+    @media (max-width: 768px) {
+        .settings-container {
+            padding: 1rem;
+        }
+
+        .settings-section {
+            padding: 1.5rem;
+        }
+
+        .section-header {
+            flex-direction: column;
+            align-items: flex-start;
+        }
+
+        .section-icon {
+            margin-bottom: 1rem;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="settings-container">
+    <!-- Personal Information Section -->
+    <div class="settings-section">
+        <div class="section-header">
+            <div class="section-icon">
+                <i class="fas fa-user"></i>
+            </div>
+            <div>
+                <h2 class="section-title">Personal Information</h2>
+                <p class="section-description">Update your personal details and profile information</p>
+            </div>
+        </div>
+        <form method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+            <div class="settings-grid">
+                <div class="settings-card">
+                    <h3 class="card-title">Basic Information</h3>
+                    <p class="card-description">Your primary contact details</p>
+                    <div class="form-group">
+                        <label class="form-label" for="first_name">First Name</label>
+                        <input type="text" class="form-control" id="first_name" name="first_name" value="{{ user.first_name }}" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="last_name">Last Name</label>
+                        <input type="text" class="form-control" id="last_name" name="last_name" value="{{ user.last_name }}" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="email">Email Address</label>
+                        <input type="email" class="form-control" id="email" name="email" value="{{ user.email }}" required>
+                    </div>
+                </div>
+            </div>
+            <button type="submit" class="btn btn-save">
+                <i class="fas fa-save me-2"></i>Save Personal Information
+            </button>
+        </form>
+    </div>
+
+    <!-- Security Settings Section -->
+    <div class="settings-section">
+        <div class="section-header">
+            <div class="section-icon">
+                <i class="fas fa-lock"></i>
+            </div>
+            <div>
+                <h2 class="section-title">Security Settings</h2>
+                <p class="section-description">Manage your account security and password</p>
+            </div>
+        </div>
+        <form method="post" action="{% url 'change_password' %}">
+            {% csrf_token %}
+            <div class="settings-grid">
+                <div class="settings-card">
+                    <h3 class="card-title">Change Password</h3>
+                    <p class="card-description">Update your account password</p>
+                    <div class="form-group">
+                        <label class="form-label" for="old_password">Current Password</label>
+                        <input type="password" class="form-control" id="old_password" name="old_password" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="new_password1">New Password</label>
+                        <input type="password" class="form-control" id="new_password1" name="new_password1" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="new_password2">Confirm New Password</label>
+                        <input type="password" class="form-control" id="new_password2" name="new_password2" required>
+                    </div>
+                </div>
+            </div>
+            <button type="submit" class="btn btn-save">
+                <i class="fas fa-key me-2"></i>Change Password
+            </button>
+        </form>
+    </div>
+
+    <!-- Notification Settings Section -->
+    <div class="settings-section">
+        <div class="section-header">
+            <div class="section-icon">
+                <i class="fas fa-bell"></i>
+            </div>
+            <div>
+                <h2 class="section-title">Notification Settings</h2>
+                <p class="section-description">Manage how you receive notifications</p>
+            </div>
+        </div>
+        <form method="post" action="{% url 'update_notification_settings' %}">
+            {% csrf_token %}
+            <div class="settings-grid">
+                <div class="settings-card">
+                    <h3 class="card-title">Email Notifications</h3>
+                    <p class="card-description">Receive updates via email</p>
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="email_notifications" name="email_notifications" {% if user.is_staff or user.student_profile.email_notifications %}checked{% endif %}>
+                        <label class="form-check-label" for="email_notifications">Enable Email Notifications</label>
+                    </div>
+                </div>
+                <div class="settings-card">
+                    <h3 class="card-title">SMS Notifications</h3>
+                    <p class="card-description">Receive updates via SMS</p>
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="sms_notifications" name="sms_notifications" {% if user.is_staff or user.student_profile.sms_notifications %}checked{% endif %}>
+                        <label class="form-check-label" for="sms_notifications">Enable SMS Notifications</label>
+                    </div>
+                </div>
+                <div class="settings-card">
+                    <h3 class="card-title">Leave Requests</h3>
+                    <p class="card-description">Notifications about leave requests</p>
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="leave_request_notifications" name="leave_request_notifications" {% if user.is_staff or user.student_profile.leave_request_notifications %}checked{% endif %}>
+                        <label class="form-check-label" for="leave_request_notifications">Enable Leave Request Notifications</label>
+                    </div>
+                </div>
+                <div class="settings-card">
+                    <h3 class="card-title">News & Announcements</h3>
+                    <p class="card-description">Updates about news and announcements</p>
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="news_notifications" name="news_notifications" {% if user.is_staff or user.student_profile.news_notifications %}checked{% endif %}>
+                        <label class="form-check-label" for="news_notifications">Enable News Notifications</label>
+                    </div>
+                </div>
+            </div>
+            <button type="submit" class="btn btn-save">
+                <i class="fas fa-save me-2"></i>Save Notification Settings
+            </button>
+        </form>
+    </div>
+
+    <!-- Privacy Settings Section -->
+    <div class="settings-section">
+        <div class="section-header">
+            <div class="section-icon">
+                <i class="fas fa-shield-alt"></i>
+            </div>
+            <div>
+                <h2 class="section-title">Privacy Settings</h2>
+                <p class="section-description">Control your privacy and visibility</p>
+            </div>
+        </div>
+        <form method="post" action="{% url 'update_privacy_settings' %}">
+            {% csrf_token %}
+            <div class="settings-grid">
+                <div class="settings-card">
+                    <h3 class="card-title">Profile Visibility</h3>
+                    <p class="card-description">Control who can see your profile</p>
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="show_profile" name="show_profile" {% if user.is_staff or user.student_profile.show_profile %}checked{% endif %}>
+                        <label class="form-check-label" for="show_profile">Show Profile to Others</label>
+                    </div>
+                </div>
+                <div class="settings-card">
+                    <h3 class="card-title">Attendance Records</h3>
+                    <p class="card-description">Manage attendance record visibility</p>
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="show_attendance" name="show_attendance" {% if user.is_staff or user.student_profile.show_attendance %}checked{% endif %}>
+                        <label class="form-check-label" for="show_attendance">Show Attendance Records</label>
+                    </div>
+                </div>
+                <div class="settings-card">
+                    <h3 class="card-title">Contact Information</h3>
+                    <p class="card-description">Control contact details visibility</p>
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="show_contact" name="show_contact" {% if user.is_staff or user.student_profile.show_contact %}checked{% endif %}>
+                        <label class="form-check-label" for="show_contact">Show Contact Information</label>
+                    </div>
+                </div>
+            </div>
+            <button type="submit" class="btn btn-save">
+                <i class="fas fa-save me-2"></i>Save Privacy Settings
+            </button>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Handle form submission
+    const forms = document.querySelectorAll('form');
+    forms.forEach(form => {
+        form.addEventListener('submit', function(e) {
+            const submitButton = form.querySelector('button[type="submit"]');
+            if (submitButton) {
+                submitButton.disabled = true;
+                submitButton.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Saving...';
+            }
+        });
+    });
+});
+</script>
+{% endblock %} 

@@ -1,0 +1,321 @@
+{% extends 'attendance_core/base.html' %}
+{% load mathfilters %}
+
+{% block title %}Attendance Analytics - Student Attendance System{% endblock %}
+
+{% block page_title %}Attendance Analytics{% endblock %}
+
+{% block content %}
+<!-- Filter Form -->
+<div class="card mb-4">
+    <div class="card-body">
+        <form method="get" class="row g-3">
+            <div class="col-md-4">
+                <label for="start_date" class="form-label">Start Date</label>
+                {{ form.start_date }}
+            </div>
+            <div class="col-md-4">
+                <label for="end_date" class="form-label">End Date</label>
+                {{ form.end_date }}
+            </div>
+            <div class="col-md-2">
+                <label for="class_section" class="form-label">Class Section</label>
+                {{ form.class_section }}
+            </div>
+            <div class="col-md-2 d-flex align-items-end gap-2">
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-filter"></i> Apply Filters
+                </button>
+                <button type="button" class="btn btn-success" id="exportData">
+                    <i class="fas fa-download"></i> Export
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Summary Cards -->
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card stat-card">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <div class="stat-value">{{ total_present_days }}</div>
+                        <div class="stat-label">Total Present Days</div>
+                    </div>
+                    <div class="stat-icon">
+                        <i class="fas fa-check-circle fa-2x text-success"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card stat-card">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <div class="stat-value">{{ total_days|sub:total_present_days }}</div>
+                        <div class="stat-label">Total Absent Days</div>
+                    </div>
+                    <div class="stat-icon">
+                        <i class="fas fa-times-circle fa-2x text-danger"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card stat-card">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <div class="stat-value">{{ total_days }}</div>
+                        <div class="stat-label">Total Days</div>
+                    </div>
+                    <div class="stat-icon">
+                        <i class="fas fa-calendar-alt fa-2x text-primary"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card stat-card">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <div class="stat-value">{{ total_present_days|div:total_days|mul:100|floatformat:1 }}%</div>
+                        <div class="stat-label">Overall Attendance</div>
+                    </div>
+                    <div class="stat-icon">
+                        <i class="fas fa-chart-pie fa-2x text-info"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Charts Row -->
+<div class="row mb-4">
+    <!-- Daily Attendance Trend -->
+    <div class="col-md-6">
+        <div class="card h-100">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Daily Attendance Trend</h5>
+            </div>
+            <div class="card-body">
+                <canvas id="dailyTrend" height="200"></canvas>
+            </div>
+        </div>
+    </div>
+    <!-- Class-wise Attendance -->
+    <div class="col-md-6">
+        <div class="card h-100">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Class-wise Attendance</h5>
+            </div>
+            <div class="card-body">
+                <canvas id="classWiseChart" height="200"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Monthly Statistics -->
+<div class="card mb-4">
+    <div class="card-header">
+        <h5 class="card-title mb-0">Monthly Attendance Statistics</h5>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>Month</th>
+                        <th>Present Days</th>
+                        <th>Total Days</th>
+                        <th>Attendance %</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for month, stats in month_wise_stats.items %}
+                    <tr>
+                        <td>{{ month }}</td>
+                        <td>{{ stats.present }}</td>
+                        <td>{{ stats.total }}</td>
+                        <td>
+                            <div class="progress" style="height: 20px;">
+                                <div class="progress-bar {% if stats.percentage < 75 %}bg-danger{% else %}bg-success{% endif %}" 
+                                     role="progressbar" 
+                                     style="width: {{ stats.percentage }}%" 
+                                     aria-valuenow="{{ stats.percentage }}" 
+                                     aria-valuemin="0" 
+                                     aria-valuemax="100">
+                                    {{ stats.percentage|floatformat:1 }}%
+                                </div>
+                            </div>
+                        </td>
+                        <td>
+                            {% if stats.percentage < 75 %}
+                                <span class="badge bg-danger">Low</span>
+                            {% else %}
+                                <span class="badge bg-success">Good</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Student-wise Attendance -->
+<div class="card">
+    <div class="card-header">
+        <h5 class="card-title mb-0">Student-wise Attendance</h5>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>Student ID</th>
+                        <th>Name</th>
+                        <th>Class</th>
+                        <th>Present Days</th>
+                        <th>Total Days</th>
+                        <th>Percentage</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for data in attendance_data %}
+                    <tr>
+                        <td>{{ data.student.student_id }}</td>
+                        <td>{{ data.student.user.get_full_name }}</td>
+                        <td>{{ data.student.class_section }}</td>
+                        <td>{{ data.present_days }}</td>
+                        <td>{{ data.total_days }}</td>
+                        <td>
+                            <div class="progress" style="height: 20px;">
+                                <div class="progress-bar {% if data.percentage < 75 %}bg-danger{% else %}bg-success{% endif %}" 
+                                     role="progressbar" 
+                                     style="width: {{ data.percentage }}%" 
+                                     aria-valuenow="{{ data.percentage }}" 
+                                     aria-valuemin="0" 
+                                     aria-valuemax="100">
+                                    {{ data.percentage|floatformat:1 }}%
+                                </div>
+                            </div>
+                        </td>
+                        <td>
+                            {% if data.percentage < 75 %}
+                                <span class="badge bg-danger">Low Attendance</span>
+                            {% else %}
+                                <span class="badge bg-success">Good Attendance</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    // Daily Attendance Trend Chart
+    const dailyTrendCtx = document.getElementById('dailyTrend').getContext('2d');
+    new Chart(dailyTrendCtx, {
+        type: 'line',
+        data: {
+            labels: [{% for date, stats in daily_attendance.items %}'{{ date|date:"M d" }}'{% if not forloop.last %},{% endif %}{% endfor %}],
+            datasets: [{
+                label: 'Daily Attendance %',
+                data: [{% for date, stats in daily_attendance.items %}{{ stats.percentage }}{% if not forloop.last %},{% endif %}{% endfor %}],
+                borderColor: '#4CAF50',
+                tension: 0.1,
+                fill: false
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: {
+                    position: 'bottom'
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    max: 100,
+                    title: {
+                        display: true,
+                        text: 'Attendance %'
+                    }
+                }
+            }
+        }
+    });
+
+    // Class-wise Attendance Chart
+    const classWiseCtx = document.getElementById('classWiseChart').getContext('2d');
+    new Chart(classWiseCtx, {
+        type: 'bar',
+        data: {
+            labels: [{% for class_section, stats in class_wise_stats.items %}'{{ class_section }}'{% if not forloop.last %},{% endif %}{% endfor %}],
+            datasets: [{
+                label: 'Attendance %',
+                data: [{% for class_section, stats in class_wise_stats.items %}{{ stats.total_present|div:stats.total_days|mul:100|floatformat:1 }}{% if not forloop.last %},{% endif %}{% endfor %}],
+                backgroundColor: '#4CAF50'
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: {
+                    position: 'bottom'
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    max: 100,
+                    title: {
+                        display: true,
+                        text: 'Attendance %'
+                    }
+                }
+            }
+        }
+    });
+
+    // Export functionality
+    document.getElementById('exportData').addEventListener('click', function() {
+        // Create a CSV string
+        let csv = 'Student ID,Name,Class,Present Days,Total Days,Percentage,Status\n';
+        {% for data in attendance_data %}
+        csv += '{{ data.student.student_id }},{{ data.student.user.get_full_name }},{{ data.student.class_section }},{{ data.present_days }},{{ data.total_days }},{{ data.percentage|floatformat:1 }}%,{% if data.percentage < 75 %}Low Attendance{% else %}Good Attendance{% endif %}\n';
+        {% endfor %}
+
+        // Create a blob and download link
+        const blob = new Blob([csv], { type: 'text/csv' });
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.setAttribute('hidden', '');
+        a.setAttribute('href', url);
+        a.setAttribute('download', 'attendance_analytics_{{ start_date|date:"Y-m-d" }}_to_{{ end_date|date:"Y-m-d" }}.csv');
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+    });
+</script>
+{% endblock %}
+{% endblock %}

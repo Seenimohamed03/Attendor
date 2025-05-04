@@ -1,0 +1,408 @@
+{% extends 'attendance_core/base.html' %}
+
+{% block title %}News Management - Student Attendance System{% endblock %}
+
+{% block page_title %}News Management{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Debug styles */
+    .debug-border {
+        border: 1px solid red;
+    }
+
+    /* News list styles */
+    .news-list {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+    .news-item {
+        transition: all 0.3s ease;
+        border: none;
+        border-radius: 10px;
+        overflow: hidden;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        background: white;
+    }
+
+    .news-item:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
+    }
+
+    .news-item .card-body {
+        padding: 1.5rem;
+    }
+
+    .news-item .card-title {
+        font-size: 1.25rem;
+        font-weight: 600;
+        color: #2c3e50;
+        margin-bottom: 0.5rem;
+    }
+
+    .news-item .text-muted {
+        font-size: 0.875rem;
+        color: #6c757d;
+    }
+
+    .news-image {
+        border-radius: 8px;
+        overflow: hidden;
+        margin-top: 1rem;
+    }
+
+    .news-image img {
+        width: 100%;
+        height: auto;
+        transition: transform 0.3s ease;
+    }
+
+    .news-image img:hover {
+        transform: scale(1.02);
+    }
+
+    /* Search bar styles */
+    .input-group {
+        max-width: 300px;
+        border-radius: 30px;
+        overflow: hidden;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    .input-group-text {
+        background: white;
+        border: none;
+        padding: 0.5rem 1rem;
+    }
+
+    .input-group .form-control {
+        border: none;
+        padding: 0.5rem 1rem;
+    }
+
+    .input-group:focus-within {
+        box-shadow: 0 0 0 2px rgba(76, 175, 80, 0.25);
+    }
+
+    /* Button styles */
+    .btn-light {
+        background: white;
+        border: none;
+        border-radius: 30px;
+        padding: 0.5rem 1.5rem;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        transition: all 0.3s ease;
+    }
+
+    .btn-light:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
+    }
+
+    /* Modal styles */
+    .modal-content {
+        border: none;
+        border-radius: 10px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+    }
+
+    .modal-header {
+        background: linear-gradient(90deg, #4CAF50 0%, #2196F3 100%);
+        color: white;
+        border-radius: 10px 10px 0 0;
+    }
+
+    .modal-footer {
+        border-radius: 0 0 10px 10px;
+    }
+
+    /* Form styles */
+    .form-control:focus {
+        border-color: #4CAF50;
+        box-shadow: 0 0 0 0.2rem rgba(76, 175, 80, 0.25);
+    }
+
+    /* Alert styles */
+    .alert {
+        border: none;
+        border-radius: 10px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    /* Responsive styles */
+    @media (max-width: 768px) {
+        .news-item {
+            margin-bottom: 1rem;
+        }
+        
+        .news-item .card-body {
+            padding: 1rem;
+        }
+        
+        .card-header {
+            flex-direction: column;
+            gap: 1rem;
+        }
+        
+        .input-group {
+            max-width: 100%;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="row">
+    <!-- News List -->
+    <div class="col-lg-8 mb-4">
+        <div class="card shadow-sm">
+            <div class="card-header bg-gradient-primary text-white d-flex justify-content-between align-items-center">
+                <h5 class="card-title mb-0"><i class="fas fa-newspaper me-2"></i>News Articles</h5>
+                <div class="d-flex align-items-center">
+                    <div class="input-group me-3">
+                        <span class="input-group-text"><i class="fas fa-search"></i></span>
+                        <input type="text" class="form-control" id="newsSearch" placeholder="Search news...">
+                    </div>
+                    <button type="button" class="btn btn-light" data-bs-toggle="modal" data-bs-target="#addNewsModal">
+                        <i class="fas fa-plus me-2"></i>Add News
+                    </button>
+                </div>
+            </div>
+            <div class="card-body">
+                {% if messages %}
+                <div class="alert alert-success alert-dismissible fade show" role="alert">
+                    {% for message in messages %}
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    {% endfor %}
+                </div>
+                {% endif %}
+
+                <div class="news-list">
+                    {% for news in news_list %}
+                    <div class="news-item" data-title="{{ news.title|lower }}" data-content="{{ news.content|lower }}">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div>
+                                    <h5 class="card-title">{{ news.title }}</h5>
+                                    <p class="text-muted mb-2">
+                                        <small>
+                                            <i class="fas fa-calendar me-1"></i>
+                                            {{ news.published_date|date:"F d, Y" }}
+                                            <i class="fas fa-user ms-2 me-1"></i>
+                                            {{ news.author.get_full_name }}
+                                        </small>
+                                    </p>
+                                </div>
+                                <div class="dropdown">
+                                    <button class="btn btn-link text-dark p-0" type="button" data-bs-toggle="dropdown">
+                                        <i class="fas fa-ellipsis-v"></i>
+                                    </button>
+                                    <ul class="dropdown-menu dropdown-menu-end">
+                                        <li>
+                                            <a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#editNewsModal{{ news.id }}">
+                                                <i class="fas fa-edit me-2"></i>Edit
+                                            </a>
+                                        </li>
+                                        <li>
+                                            <a class="dropdown-item text-danger" href="#" data-bs-toggle="modal" data-bs-target="#deleteNewsModal{{ news.id }}">
+                                                <i class="fas fa-trash me-2"></i>Delete
+                                            </a>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div>
+                            <p class="card-text">{{ news.content|linebreaks }}</p>
+                            {% if news.image %}
+                            <div class="news-image">
+                                <img src="{{ news.image.url }}" alt="{{ news.title }}" class="img-fluid rounded">
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- Edit News Modal -->
+                    <div class="modal fade" id="editNewsModal{{ news.id }}" tabindex="-1">
+                        <div class="modal-dialog modal-lg">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h5 class="modal-title">Edit News</h5>
+                                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                                </div>
+                                <form method="post" action="{% url 'edit_news' news.id %}" enctype="multipart/form-data">
+                                    {% csrf_token %}
+                                    <div class="modal-body">
+                                        <div class="mb-3">
+                                            <label for="title{{ news.id }}" class="form-label">Title</label>
+                                            <input type="text" class="form-control" id="title{{ news.id }}" name="title" value="{{ news.title }}" required>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label for="content{{ news.id }}" class="form-label">Content</label>
+                                            <textarea class="form-control" id="content{{ news.id }}" name="content" rows="5" required>{{ news.content }}</textarea>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label for="image{{ news.id }}" class="form-label">Image</label>
+                                            <input type="file" class="form-control" id="image{{ news.id }}" name="image" accept="image/*">
+                                            {% if news.image %}
+                                            <div class="mt-2">
+                                                <img src="{{ news.image.url }}" alt="Current image" class="img-thumbnail" style="max-height: 200px;">
+                                            </div>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                    <div class="modal-footer">
+                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                        <button type="submit" class="btn btn-primary">Save Changes</button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Delete News Modal -->
+                    <div class="modal fade" id="deleteNewsModal{{ news.id }}" tabindex="-1">
+                        <div class="modal-dialog">
+                            <div class="modal-content">
+                                <div class="modal-header bg-danger text-white">
+                                    <h5 class="modal-title">Delete News</h5>
+                                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                                </div>
+                                <div class="modal-body">
+                                    <p>Are you sure you want to delete this news article?</p>
+                                    <p class="text-danger"><strong>This action cannot be undone.</strong></p>
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                    <form method="post" action="{% url 'delete_news' news.id %}" class="d-inline">
+                                        {% csrf_token %}
+                                        <button type="submit" class="btn btn-danger">Delete</button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% empty %}
+                    <div class="text-center py-5">
+                        <i class="fas fa-newspaper fa-3x text-muted mb-3"></i>
+                        <p class="text-muted">No news articles found.</p>
+                        <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addNewsModal">
+                            <i class="fas fa-plus me-2"></i>Add News
+                        </button>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add News Modal -->
+    <div class="modal fade" id="addNewsModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Add News</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <form method="post" action="{% url 'add_news' %}" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label for="title" class="form-label">Title</label>
+                            <input type="text" class="form-control" id="title" name="title" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="content" class="form-label">Content</label>
+                            <textarea class="form-control" id="content" name="content" rows="5" required></textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label for="image" class="form-label">Image</label>
+                            <input type="file" class="form-control" id="image" name="image" accept="image/*">
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-primary">Add News</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialize tooltips
+    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+    var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+        return new bootstrap.Tooltip(tooltipTriggerEl);
+    });
+
+    // Handle image preview for file inputs
+    document.querySelectorAll('input[type="file"]').forEach(function(input) {
+        input.addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const preview = input.parentElement.querySelector('.img-thumbnail');
+                    if (preview) {
+                        preview.src = e.target.result;
+                    } else {
+                        const img = document.createElement('img');
+                        img.src = e.target.result;
+                        img.className = 'img-thumbnail mt-2';
+                        img.style.maxHeight = '200px';
+                        input.parentElement.appendChild(img);
+                    }
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+    });
+
+    // Handle form submission
+    document.querySelectorAll('form').forEach(function(form) {
+        form.addEventListener('submit', function(e) {
+            const submitButton = form.querySelector('button[type="submit"]');
+            if (submitButton) {
+                submitButton.disabled = true;
+                submitButton.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Processing...';
+            }
+        });
+    });
+
+    // Handle news search
+    const newsSearch = document.getElementById('newsSearch');
+    if (newsSearch) {
+        newsSearch.addEventListener('input', function(e) {
+            const searchTerm = e.target.value.toLowerCase();
+            const newsItems = document.querySelectorAll('.news-item');
+            
+            newsItems.forEach(function(item) {
+                const title = item.getAttribute('data-title');
+                const content = item.getAttribute('data-content');
+                
+                if (title.includes(searchTerm) || content.includes(searchTerm)) {
+                    item.style.display = 'block';
+                    setTimeout(() => {
+                        item.style.opacity = '1';
+                        item.style.transform = 'translateY(0)';
+                    }, 50);
+                } else {
+                    item.style.opacity = '0';
+                    item.style.transform = 'translateY(-10px)';
+                    setTimeout(() => {
+                        item.style.display = 'none';
+                    }, 300);
+                }
+            });
+        });
+    }
+});
+</script>
+{% endblock %} 

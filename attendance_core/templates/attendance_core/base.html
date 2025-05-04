@@ -1,0 +1,502 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Student Attendance System{% endblock %}</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #4e73df;
+            --secondary-color: #858796;
+            --success-color: #1cc88a;
+            --info-color: #36b9cc;
+            --warning-color: #f6c23e;
+            --danger-color: #e74a3b;
+            --light-color: #f8f9fc;
+            --dark-color: #5a5c69;
+        }
+
+        body {
+            background-color: #f8f9fc;
+            font-family: 'Nunito', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+        }
+
+        .sidebar {
+            background: linear-gradient(180deg, var(--primary-color) 10%, #224abe 100%);
+            min-height: 100vh;
+            padding: 0;
+            box-shadow: 0 0.15rem 1.75rem 0 rgba(58, 59, 69, 0.15);
+        }
+
+        .sidebar .nav-link {
+            color: rgba(255, 255, 255, 0.8);
+            padding: 1rem;
+            font-weight: 500;
+            transition: all 0.3s;
+        }
+
+        .sidebar .nav-link:hover {
+            color: #fff;
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .sidebar .nav-link.active {
+            color: #fff;
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .sidebar .nav-link i {
+            margin-right: 0.5rem;
+            width: 1.5rem;
+            text-align: center;
+        }
+
+        .main-content {
+            padding: 2rem;
+        }
+
+        .card {
+            border: none;
+            border-radius: 0.35rem;
+            box-shadow: 0 0.15rem 1.75rem 0 rgba(58, 59, 69, 0.15);
+            margin-bottom: 1.5rem;
+        }
+
+        .card-header {
+            background-color: #fff;
+            border-bottom: 1px solid #e3e6f0;
+            padding: 1rem 1.25rem;
+        }
+
+        .card-body {
+            padding: 1.25rem;
+        }
+
+        .btn {
+            border-radius: 0.35rem;
+            padding: 0.375rem 0.75rem;
+            font-weight: 500;
+            transition: all 0.3s;
+        }
+
+        .btn-primary {
+            background-color: var(--primary-color);
+            border-color: var(--primary-color);
+        }
+
+        .btn-primary:hover {
+            background-color: #2e59d9;
+            border-color: #2653d4;
+        }
+
+        .alert {
+            border-radius: 0.35rem;
+            border: none;
+        }
+
+        .alert-success {
+            background-color: #e3fcef;
+            color: #1cc88a;
+        }
+
+        .alert-danger {
+            background-color: #fce3e3;
+            color: #e74a3b;
+        }
+
+        .table {
+            margin-bottom: 0;
+        }
+
+        .table th {
+            border-top: none;
+            background-color: #f8f9fc;
+            color: var(--secondary-color);
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 0.7rem;
+            letter-spacing: 0.1rem;
+        }
+
+        .table td {
+            vertical-align: middle;
+        }
+
+        .form-control {
+            border-radius: 0.35rem;
+            border: 1px solid #d1d3e2;
+        }
+
+        .form-control:focus {
+            border-color: #bac8f3;
+            box-shadow: 0 0 0 0.2rem rgba(78, 115, 223, 0.25);
+        }
+
+        .page-title {
+            color: var(--dark-color);
+            font-weight: 700;
+            margin-bottom: 1.5rem;
+        }
+
+        .stat-card {
+            border-left: 0.25rem solid var(--primary-color);
+        }
+
+        .stat-card.success {
+            border-left-color: var(--success-color);
+        }
+
+        .stat-card.warning {
+            border-left-color: var(--warning-color);
+        }
+
+        .stat-card.danger {
+            border-left-color: var(--danger-color);
+        }
+
+        .stat-card .stat-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--dark-color);
+        }
+
+        .stat-card .stat-label {
+            font-size: 0.7rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            color: var(--secondary-color);
+        }
+
+        .notification-badge {
+            position: absolute;
+            top: 0;
+            right: 0;
+            transform: translate(50%, -50%);
+            background-color: var(--danger-color);
+            color: white;
+            border-radius: 50%;
+            padding: 0.25rem 0.5rem;
+            font-size: 0.75rem;
+        }
+
+        @media (max-width: 768px) {
+            .sidebar {
+                position: fixed;
+                z-index: 1000;
+                width: 14rem;
+                transform: translateX(-100%);
+                transition: transform 0.3s;
+            }
+
+            .sidebar.show {
+                transform: translateX(0);
+            }
+
+            .main-content {
+                margin-left: 0;
+            }
+        }
+    </style>
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    <div class="container-fluid">
+        <div class="row">
+            <!-- Sidebar -->
+            <div class="col-md-3 col-lg-2 sidebar">
+                <div class="d-flex flex-column h-100">
+                    <div class="p-3 text-center">
+                        <h5 class="text-white mb-0">Attend Ease</h5>
+                    </div>
+                    <hr class="border-light my-0">
+                    {% if user.is_staff %}
+                        <!-- Admin Navigation -->
+                        <div class="d-flex flex-column">
+                            <a href="{% url 'admin_profile' %}" class="nav-link {% if request.resolver_match.url_name == 'admin_profile' %}active{% endif %}">
+                                <i class="fas fa-user"></i> Profile
+                            </a>
+                            <a href="{% url 'admin_dashboard' %}" class="nav-link {% if request.resolver_match.url_name == 'admin_dashboard' %}active{% endif %}">
+                                <i class="fas fa-tachometer-alt"></i> Dashboard
+                            </a>
+                            <a href="{% url 'student_management' %}" class="nav-link {% if request.resolver_match.url_name == 'student_management' %}active{% endif %}">
+                                <i class="fas fa-users"></i> Students
+                            </a>
+                            <a href="{% url 'mark_attendance' %}" class="nav-link {% if request.resolver_match.url_name == 'mark_attendance' %}active{% endif %}">
+                                <i class="fas fa-check-square"></i> Mark Attendance
+                            </a>
+                            <a href="{% url 'attendance_analytics' %}" class="nav-link {% if request.resolver_match.url_name == 'attendance_analytics' %}active{% endif %}">
+                                <i class="fas fa-chart-bar"></i> Analytics
+                            </a>
+                            <a href="{% url 'manage_news' %}" class="nav-link {% if request.resolver_match.url_name == 'manage_news' %}active{% endif %}">
+                                <i class="fas fa-newspaper"></i> News
+                            </a>
+                            <a href="{% url 'manage_leave_requests' %}" class="nav-link {% if request.resolver_match.url_name == 'manage_leave_requests' %}active{% endif %}">
+                                <i class="fas fa-calendar-alt"></i> Leave Requests
+                            </a>
+                            
+                            <a href="{% url 'admin_settings' %}" class="nav-link {% if request.resolver_match.url_name == 'admin_settings' %}active{% endif %}">
+                                <i class="fas fa-cog"></i> Settings
+                            </a>
+                        </div>
+                    {% else %}
+                        <!-- Student Navigation -->
+                        <div class="d-flex flex-column">
+                            <a href="{% url 'student_profile' %}" class="nav-link {% if request.resolver_match.url_name == 'student_profile' %}active{% endif %}">
+                                <i class="fas fa-user"></i> Profile
+                            </a>
+                            <a href="{% url 'student_dashboard' %}" class="nav-link {% if request.resolver_match.url_name == 'student_dashboard' %}active{% endif %}">
+                                <i class="fas fa-tachometer-alt"></i> Dashboard
+                            </a>
+                            <a href="{% url 'student_leave_request' %}" class="nav-link {% if request.resolver_match.url_name == 'student_leave_request' %}active{% endif %}">
+                                <i class="fas fa-calendar-alt"></i> Leave Request
+                            </a>
+                            <a href="{% url 'student_news' %}" class="nav-link {% if request.resolver_match.url_name == 'student_news' %}active{% endif %}">
+                                <i class="fas fa-newspaper"></i> News
+                            </a>
+                            
+                            <a href="{% url 'student_settings' %}" class="nav-link {% if request.resolver_match.url_name == 'student_settings' %}active{% endif %}">
+                                <i class="fas fa-cog"></i> Settings
+                            </a>
+                        </div>
+                    {% endif %}
+                    <div class="mt-auto p-3">
+                        <a href="{% url 'logout' %}" class="nav-link text-white">
+                            <i class="fas fa-sign-out-alt"></i> Logout
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Main Content -->
+            <div class="col-md-9 col-lg-10 main-content">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h1 class="page-title">{% block page_title %}{% endblock %}</h1>
+                    <div class="d-flex align-items-center">
+                        <span class="me-3 text-muted">
+                            <i class="fas fa-user me-1"></i>
+                            {{ user.get_full_name|default:user.username }}
+                        </span>
+                        <div class="dropdown">
+                            <button class="btn btn-link text-dark dropdown-toggle" type="button" id="userDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                                <i class="fas fa-cog"></i>
+                            </button>
+                            <div class="dropdown-menu dropdown-menu-end shadow" aria-labelledby="userDropdown">
+                                <div class="dropdown-header">
+                                    <h6 class="mb-0">{{ user.get_full_name }}</h6>
+                                    <small class="text-muted">{{ user.email }}</small>
+                                </div>
+                                <div class="dropdown-divider"></div>
+                                <a class="dropdown-item" href="{% url 'logout' %}">
+                                    <i class="fas fa-sign-out-alt me-2"></i>Logout
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {% if messages %}
+                <div class="alert alert-dismissible fade show" role="alert">
+                    {% for message in messages %}
+                    <div class="d-flex align-items-center">
+                        {% if message.tags == 'success' %}
+                        <i class="fas fa-check-circle me-2"></i>
+                        {% elif message.tags == 'error' %}
+                        <i class="fas fa-exclamation-circle me-2"></i>
+                        {% endif %}
+                        {{ message }}
+                        <button type="button" class="btn-close ms-auto" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+
+                <!-- Settings Modal -->
+                <div class="modal fade" id="settingsModal" tabindex="-1" aria-labelledby="settingsModalLabel" aria-hidden="true">
+                    <div class="modal-dialog">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title" id="settingsModalLabel">Account Settings</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                            </div>
+                            <div class="modal-body">
+                                <div class="list-group">
+                                    <a href="#" class="list-group-item list-group-item-action" data-bs-toggle="modal" data-bs-target="#changePasswordModal">
+                                        <i class="fas fa-key me-2"></i>Change Password
+                                    </a>
+                                    <a href="#" class="list-group-item list-group-item-action" data-bs-toggle="modal" data-bs-target="#notificationSettingsModal">
+                                        <i class="fas fa-bell me-2"></i>Notification Settings
+                                    </a>
+                                    <a href="#" class="list-group-item list-group-item-action" data-bs-toggle="modal" data-bs-target="#privacySettingsModal">
+                                        <i class="fas fa-shield-alt me-2"></i>Privacy Settings
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Change Password Modal -->
+                <div class="modal fade" id="changePasswordModal" tabindex="-1" aria-labelledby="changePasswordModalLabel" aria-hidden="true">
+                    <div class="modal-dialog">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title" id="changePasswordModalLabel">Change Password</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                            </div>
+                            <div class="modal-body">
+                                <form method="post" action="{% url 'change_password' %}">
+                                    {% csrf_token %}
+                                    <div class="mb-3">
+                                        <label for="old_password" class="form-label">Current Password</label>
+                                        <input type="password" class="form-control" id="old_password" name="old_password" required>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="new_password1" class="form-label">New Password</label>
+                                        <input type="password" class="form-control" id="new_password1" name="new_password1" required>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="new_password2" class="form-label">Confirm New Password</label>
+                                        <input type="password" class="form-control" id="new_password2" name="new_password2" required>
+                                    </div>
+                                    <button type="submit" class="btn btn-primary">Change Password</button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Notification Settings Modal -->
+                <div class="modal fade" id="notificationSettingsModal" tabindex="-1" aria-labelledby="notificationSettingsModalLabel" aria-hidden="true">
+                    <div class="modal-dialog">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title" id="notificationSettingsModalLabel">Notification Settings</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                            </div>
+                            <div class="modal-body">
+                                <form method="post" action="{% url 'update_notification_settings' %}">
+                                    {% csrf_token %}
+                                    <div class="form-check form-switch mb-3">
+                                        <input class="form-check-input" type="checkbox" id="email_notifications" name="email_notifications" {% if user.is_staff or user.student_profile.email_notifications %}checked{% endif %}>
+                                        <label class="form-check-label" for="email_notifications">Email Notifications</label>
+                                    </div>
+                                    <div class="form-check form-switch mb-3">
+                                        <input class="form-check-input" type="checkbox" id="sms_notifications" name="sms_notifications" {% if user.is_staff or user.student_profile.sms_notifications %}checked{% endif %}>
+                                        <label class="form-check-label" for="sms_notifications">SMS Notifications</label>
+                                    </div>
+                                    <div class="form-check form-switch mb-3">
+                                        <input class="form-check-input" type="checkbox" id="leave_request_notifications" name="leave_request_notifications" {% if user.is_staff or user.student_profile.leave_request_notifications %}checked{% endif %}>
+                                        <label class="form-check-label" for="leave_request_notifications">Leave Request Notifications</label>
+                                    </div>
+                                    <div class="form-check form-switch mb-3">
+                                        <input class="form-check-input" type="checkbox" id="news_notifications" name="news_notifications" {% if user.is_staff or user.student_profile.news_notifications %}checked{% endif %}>
+                                        <label class="form-check-label" for="news_notifications">News Notifications</label>
+                                    </div>
+                                    <button type="submit" class="btn btn-primary">Save Settings</button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Privacy Settings Modal -->
+                <div class="modal fade" id="privacySettingsModal" tabindex="-1" aria-labelledby="privacySettingsModalLabel" aria-hidden="true">
+                    <div class="modal-dialog">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title" id="privacySettingsModalLabel">Privacy Settings</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                            </div>
+                            <div class="modal-body">
+                                <form method="post" action="{% url 'update_privacy_settings' %}">
+                                    {% csrf_token %}
+                                    <div class="form-check form-switch mb-3">
+                                        <input class="form-check-input" type="checkbox" id="show_profile" name="show_profile" {% if user.is_staff or user.student_profile.show_profile %}checked{% endif %}>
+                                        <label class="form-check-label" for="show_profile">Show Profile to Others</label>
+                                    </div>
+                                    <div class="form-check form-switch mb-3">
+                                        <input class="form-check-input" type="checkbox" id="show_attendance" name="show_attendance" {% if user.is_staff or user.student_profile.show_attendance %}checked{% endif %}>
+                                        <label class="form-check-label" for="show_attendance">Show Attendance Records</label>
+                                    </div>
+                                    <div class="form-check form-switch mb-3">
+                                        <input class="form-check-input" type="checkbox" id="show_contact" name="show_contact" {% if user.is_staff or user.student_profile.show_contact %}checked{% endif %}>
+                                        <label class="form-check-label" for="show_contact">Show Contact Information</label>
+                                    </div>
+                                    <button type="submit" class="btn btn-primary">Save Settings</button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {% block content %}{% endblock %}
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        $(document).ready(function() {
+            // Auto-hide alerts after 5 seconds
+            setTimeout(function() {
+                $('.alert').alert('close');
+            }, 5000);
+
+            // Add active class to current page in navigation
+            $('.nav-link').each(function() {
+                if (window.location.pathname.includes($(this).attr('href'))) {
+                    $(this).addClass('active');
+                }
+            });
+
+            // Mobile sidebar toggle
+            $('.sidebar-toggle').click(function() {
+                $('.sidebar').toggleClass('show');
+            });
+
+            // Handle logout confirmation
+            $('a[href="{% url 'logout' %}"]').click(function(e) {
+                e.preventDefault();
+                $('#logoutModal').modal('show');
+            });
+
+            // Handle logout button click
+            $('#logoutConfirmBtn').click(function() {
+                // Show loading state
+                $(this).html('<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>Logging out...');
+                $(this).prop('disabled', true);
+                
+                // Perform logout
+                window.location.href = "{% url 'logout' %}";
+            });
+        });
+    </script>
+
+    <!-- Logout Confirmation Modal -->
+    <div class="modal fade" id="logoutModal" tabindex="-1" aria-labelledby="logoutModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="logoutModalLabel">Confirm Logout</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body text-center">
+                    <i class="fas fa-sign-out-alt fa-3x text-warning mb-3"></i>
+                    <p>Are you sure you want to logout?</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-warning" id="logoutConfirmBtn">
+                        <i class="fas fa-sign-out-alt me-2"></i>Logout
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

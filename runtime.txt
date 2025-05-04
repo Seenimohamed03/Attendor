@@ -1,0 +1,4 @@
+python-3.11.0 
+DJANGO_SETTINGS_MODULE=attendance_system.production_settings
+SECRET_KEY=your-secret-key-here
+DATABASE_URL=your-database-url 

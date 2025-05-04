@@ -1,0 +1,334 @@
+{% extends 'attendance_core/base.html' %}
+{% load static %}
+{% load mathfilters %}
+
+{% block title %}Student Dashboard{% endblock %}
+
+{% block extra_css %}
+<style>
+    .profile-card-modern {
+        background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+        box-shadow: 0 4px 24px rgba(44, 62, 80, 0.08);
+        border: none;
+        position: relative;
+    }
+    .profile-img-modern {
+        width: 120px;
+        height: 120px;
+        object-fit: cover;
+        border: 4px solid #4CAF50;
+        box-shadow: 0 2px 8px rgba(44, 62, 80, 0.12);
+        margin-bottom: 10px;
+    }
+    .stat-box-modern {
+        padding: 1.2rem;
+        border-radius: 1rem;
+        background: linear-gradient(90deg, #e3ffe6 0%, #e3f0ff 100%);
+        box-shadow: 0 2px 8px rgba(44, 62, 80, 0.08);
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .stat-box-modern:hover {
+        transform: translateY(-3px) scale(1.03);
+        box-shadow: 0 6px 24px rgba(44, 62, 80, 0.12);
+    }
+    .stat-icon {
+        font-size: 2rem;
+        color: #2196F3;
+        flex-shrink: 0;
+    }
+    .stat-value {
+        font-size: 1.5rem;
+        font-weight: bold;
+        margin-bottom: 0.25rem;
+    }
+    .stat-label {
+        font-size: 0.875rem;
+        color: var(--bs-secondary);
+    }
+    .notification-item {
+        transition: background-color 0.2s;
+        cursor: pointer;
+        border-left: 4px solid transparent;
+    }
+    .notification-item.unread {
+        background-color: #e3f0ff;
+        border-left: 4px solid #2196F3;
+    }
+    .notification-item.read {
+        opacity: 0.7;
+    }
+    .news-card-modern {
+        background: linear-gradient(135deg, #f5f7fa 0%, #e3ffe6 100%);
+        border-radius: 1rem;
+        box-shadow: 0 2px 8px rgba(44, 62, 80, 0.08);
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+    }
+    .table-modern th, .table-modern td {
+        vertical-align: middle;
+    }
+    .table-modern tbody tr:hover {
+        background-color: #f0f7ff;
+    }
+    .card {
+        border-radius: 1rem;
+        box-shadow: 0 2px 8px rgba(44, 62, 80, 0.08);
+    }
+    @media (max-width: 767px) {
+        .profile-img-modern {
+            width: 80px;
+            height: 80px;
+        }
+        .stat-box-modern {
+            flex-direction: column;
+            align-items: flex-start;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row g-4">
+        <!-- Profile Section -->
+        <div class="col-lg-4">
+            <div class="card profile-card-modern mb-4">
+                <div class="card-body text-center">
+                    <div class="mb-3 position-relative">
+                        {% if student.profile_picture %}
+                            <img src="{{ student.profile_picture.url }}" alt="Profile Picture" class="rounded-circle profile-img-modern">
+                        {% else %}
+                            <div class="rounded-circle bg-light d-flex align-items-center justify-content-center profile-img-modern mx-auto">
+                                <i class="fas fa-user fa-3x text-muted"></i>
+                            </div>
+                        {% endif %}
+                        <span class="badge bg-success position-absolute top-0 end-0 translate-middle p-2 border border-light rounded-circle"><i class="fas fa-check"></i></span>
+                    </div>
+                    <h4 class="mb-1">{{ student.user.get_full_name|default:student.user.username }}</h4>
+                    <p class="text-muted mb-3">{{ student.student_id }}</p>
+                    <div class="d-grid gap-2 d-md-block">
+                        <a href="{% url 'student_profile' %}" class="btn btn-primary btn-sm rounded-pill">
+                            <i class="fas fa-edit me-2"></i>Edit Profile
+                        </a>
+                        <a href="{% url 'download_attendance_report' %}" class="btn btn-outline-primary btn-sm rounded-pill">
+                            <i class="fas fa-download me-2"></i>Download Report
+                        </a>
+                    </div>
+                </div>
+            </div>
+            <!-- Quick Stats -->
+            <div class="row g-3 mb-4">
+                <div class="col-6">
+                    <div class="stat-box-modern">
+                        <span class="stat-icon"><i class="fas fa-chart-pie"></i></span>
+                        <div>
+                            <div class="stat-value text-primary">{{ attendance_percentage|floatformat:1 }}%</div>
+                            <div class="stat-label">Overall Attendance</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-6">
+                    <div class="stat-box-modern">
+                        <span class="stat-icon"><i class="fas fa-calendar-alt"></i></span>
+                        <div>
+                            <div class="stat-value text-success">{{ monthly_percentage|floatformat:1 }}%</div>
+                            <div class="stat-label">This Month</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-6">
+                    <div class="stat-box-modern">
+                        <span class="stat-icon"><i class="fas fa-user-check"></i></span>
+                        <div>
+                            <div class="stat-value text-info">{{ present_days }}/{{ total_days }}</div>
+                            <div class="stat-label">Present Days</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-6">
+                    <div class="stat-box-modern">
+                        <span class="stat-icon"><i class="fas fa-hourglass-half"></i></span>
+                        <div>
+                            <div class="stat-value text-warning">{{ pending_leaves.count }}</div>
+                            <div class="stat-label">Pending Leaves</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- Notifications -->
+            <div class="card mb-4">
+                <div class="card-header bg-gradient-primary text-white rounded-top">
+                    <h5 class="card-title mb-0"><i class="fas fa-bell me-2"></i>Recent Notifications</h5>
+                </div>
+                <div class="card-body p-0">
+                    <div class="list-group list-group-flush">
+                        {% for notification in notifications %}
+                        <div class="list-group-item notification-item {% if not notification.is_read %}unread{% else %}read{% endif %}" 
+                             data-notification-id="{{ notification.id }}">
+                            <div class="d-flex w-100 justify-content-between align-items-center">
+                                <h6 class="mb-1"><i class="fas fa-info-circle me-2"></i>{{ notification.title }}</h6>
+                                <small class="text-muted"><i class="fas fa-clock me-1"></i>{{ notification.created_at|timesince }} ago</small>
+                            </div>
+                            <p class="mb-1">{{ notification.message }}</p>
+                        </div>
+                        {% empty %}
+                        <div class="list-group-item text-center text-muted">
+                            No new notifications
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- Main Content Section -->
+        <div class="col-lg-8">
+            <!-- Recent Attendance -->
+            <div class="card mb-4">
+                <div class="card-header bg-gradient-primary text-white rounded-top">
+                    <h5 class="card-title mb-0"><i class="fas fa-calendar-check me-2"></i>Recent Attendance</h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover table-modern">
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Day</th>
+                                    <th class="text-center">Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for record in attendance_records %}
+                                <tr>
+                                    <td>{{ record.date|date:"F j, Y" }}</td>
+                                    <td>{{ record.date|date:"l" }}</td>
+                                    <td class="text-center">
+                                        {% if record.status %}
+                                            <span class="badge bg-success"><i class="fas fa-check-circle me-1"></i>Present</span>
+                                        {% else %}
+                                            <span class="badge bg-danger"><i class="fas fa-times-circle me-1"></i>Absent</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="3" class="text-center">No attendance records found</td>
+                                </tr> 
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            <!-- Attendance Chart -->
+            <div class="card mb-4">
+                <div class="card-header bg-gradient-primary text-white rounded-top">
+                    <h5 class="card-title mb-0"><i class="fas fa-chart-pie me-2"></i>Attendance Overview</h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="attendanceChart" height="200"></canvas>
+                </div>
+            </div>
+            <!-- Recent News -->
+            <div class="news-card-modern">
+                <h5 class="mb-3"><i class="fas fa-newspaper me-2"></i>Recent News</h5>
+                {% for news in recent_news %}
+                <div class="mb-4">
+                    <h5>{{ news.title }}</h5>
+                    <p class="text-muted mb-2">
+                        <small>
+                            <i class="fas fa-user me-2"></i>{{ news.posted_by.get_full_name }}
+                            <i class="fas fa-clock ms-3 me-2"></i>{{ news.created_at|date:"F j, Y" }}
+                        </small>
+                    </p>
+                    <p class="mb-0">{{ news.content|truncatewords:50 }}</p>
+                    <a href="{% url 'news_detail' news.id %}" class="btn btn-link px-0">Read more</a>
+                </div>
+                {% if not forloop.last %}
+                    <hr>
+                {% endif %}
+                {% empty %}
+                <p class="text-center text-muted">No news available</p>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+        // Attendance Pie Chart
+        const ctx = document.getElementById('attendanceChart').getContext('2d');
+        new Chart(ctx, {
+            type: 'pie',
+            data: {
+                labels: ['Present', 'Absent'],
+                datasets: [{
+                    data: [
+                        {{ present_days }},
+                        {{ total_days|sub:present_days }}
+                    ],
+                    backgroundColor: [
+                        'rgba(40, 167, 69, 0.8)',
+                        'rgba(220, 53, 69, 0.8)'
+                    ],
+                    borderColor: [
+                        'rgba(40, 167, 69, 1)',
+                        'rgba(220, 53, 69, 1)'
+                    ],
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        position: 'bottom'
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                const label = context.label || '';
+                                const value = context.raw || 0;
+                                const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                const percentage = Math.round((value / total) * 100);
+                                return `${label}: ${value} (${percentage}%)`;
+                            }
+                        }
+                    }
+                }
+            }
+        });
+
+        // Mark notifications as read when clicked
+        const notifications = document.querySelectorAll('.notification-item');
+        notifications.forEach(notification => {
+            if (!notification.classList.contains('read')) {
+                notification.addEventListener('click', function() {
+                    const notificationId = this.dataset.notificationId;
+                    fetch(`/mark-notification-read/${notificationId}/`, {
+                        method: 'POST',
+                        headers: {
+                            'X-CSRFToken': '{{ csrf_token }}'
+                        }
+                    }).then(() => {
+                        this.classList.remove('unread');
+                        this.classList.add('read');
+                    });
+                });
+            }
+        });
+
+        // Auto-refresh dashboard every 5 minutes
+        setInterval(function() {
+            location.reload();
+        }, 300000);
+    });
+</script>
+{% endblock %}

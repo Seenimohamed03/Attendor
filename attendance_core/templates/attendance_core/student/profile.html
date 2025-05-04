@@ -1,0 +1,473 @@
+{% extends 'attendance_core/base.html' %}
+
+{% block title %}Profile & Settings - Student Attendance System{% endblock %}
+
+{% block page_title %}Profile & Settings{% endblock %}
+
+{% block content %}
+<div class="row g-4">
+    <!-- Profile Card (Left Column) -->
+    <div class="col-md-4">
+        <div class="card profile-card-modern mb-4">
+            <div class="card-header bg-gradient-primary text-white">
+                <h5 class="card-title mb-0"><i class="fas fa-user-circle me-2"></i>Student Profile</h5>
+            </div>
+            <div class="card-body text-center">
+                <div class="profile-picture mb-3 position-relative">
+                    {% if student.profile_picture %}
+                    <img src="{{ student.profile_picture.url }}" alt="Profile Picture" class="rounded-circle profile-img-modern">
+                    {% else %}
+                    <div class="rounded-circle bg-light d-flex align-items-center justify-content-center profile-img-modern mx-auto">
+                        <i class="fas fa-user fa-3x text-muted"></i>
+                    </div>
+                    {% endif %}
+                    <span class="badge bg-success position-absolute top-0 end-0 translate-middle p-2 border border-light rounded-circle"><i class="fas fa-check"></i></span>
+                </div>
+                <h4 class="mb-1">
+                    {{ student.user.get_full_name }}
+                    {% if student.user.is_active %}
+                        <span class="badge bg-success ms-2" title="Active"><i class="fas fa-circle me-1"></i>Active</span>
+                    {% else %}
+                        <span class="badge bg-danger ms-2" title="Inactive"><i class="fas fa-circle me-1"></i>Inactive</span>
+                    {% endif %}
+                </h4>
+                <span class="badge bg-primary mb-2">Class: {{ student.class_section }}</span>
+                <p class="text-muted mb-1"><i class="fas fa-id-card me-1"></i>Student ID: {{ student.student_id }}</p>
+                <p class="text-muted mb-1"><i class="fas fa-envelope me-1"></i>{{ student.user.email }}</p>
+                <p class="text-muted mb-1"><i class="fas fa-phone me-1"></i>{{ student.phone }}</p>
+                <p class="text-muted mb-1"><i class="fas fa-user-friends me-1"></i>Parent: {{ student.parent_phone }}</p>
+                <p class="text-muted mb-1"><i class="fas fa-map-marker-alt me-1"></i>{{ student.address }}</p>
+                <p class="text-muted mb-2"><i class="fas fa-calendar-alt me-1"></i>Joined: {{ student.user.date_joined|date:'F j, Y' }}</p>
+                <div class="d-flex justify-content-center gap-2 mb-3">
+                    <a href="{% url 'download_attendance_report' %}" class="btn btn-outline-primary btn-sm rounded-pill"><i class="fas fa-download me-1"></i>Report</a>
+                    <button class="btn btn-outline-secondary btn-sm rounded-pill" data-bs-toggle="modal" data-bs-target="#changePictureModal"><i class="fas fa-camera me-1"></i>Picture</button>
+                    <button class="btn btn-outline-secondary btn-sm rounded-pill" data-bs-toggle="modal" data-bs-target="#changePasswordModal"><i class="fas fa-key me-1"></i>Password</button>
+                </div>
+                <div class="row g-2 mt-2">
+                    <div class="col-6">
+                        <div class="stat-box-modern text-center">
+                            <div class="stat-value text-primary">{{ student.get_attendance_percentage }}%</div>
+                            <div class="stat-label">Attendance</div>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="stat-box-modern text-center">
+                            <div class="stat-value text-success">{{ student.get_recent_attendance|length }}</div>
+                            <div class="stat-label">Recent Days</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Main Content (Right Column) -->
+    <div class="col-md-8">
+        <div class="card settings-card-modern">
+            <div class="card-header bg-gradient-primary text-white rounded-top">
+                <ul class="nav nav-tabs card-header-tabs" id="profileTabs" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link active" id="info-tab" data-bs-toggle="tab" data-bs-target="#info" type="button" role="tab"><i class="fas fa-user"></i> Info</button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="attendance-tab" data-bs-toggle="tab" data-bs-target="#attendance" type="button" role="tab"><i class="fas fa-calendar-check"></i> Attendance</button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="leave-tab" data-bs-toggle="tab" data-bs-target="#leave" type="button" role="tab"><i class=""></i> Leave</button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="settings-tab" data-bs-toggle="tab" data-bs-target="#settings" type="button" role="tab"><i class="fas fa-cog"></i> Settings</button>
+                    </li>
+                </ul>
+            </div>
+            <div class="card-body tab-content">
+                <!-- Info Tab -->
+                <div class="tab-pane fade show active" id="info" role="tabpanel">
+                    <form method="post" enctype="multipart/form-data">
+                        {% csrf_token %}
+                        <div class="row g-3">
+                            <div class="col-12 mb-2">
+                                <h6 class="text-primary"><i class="fas fa-user me-1"></i>Personal Info</h6>
+                            </div>
+                            <div class="col-md-6 form-floating">
+                                <input type="text" class="form-control" id="id_first_name" name="first_name" value="{{ student.user.first_name }}" required placeholder="First Name">
+                                <label for="id_first_name"><i class="fas fa-user"></i> First Name</label>
+                            </div>
+                            <div class="col-md-6 form-floating">
+                                <input type="text" class="form-control" id="id_last_name" name="last_name" value="{{ student.user.last_name }}" required placeholder="Last Name">
+                                <label for="id_last_name"><i class="fas fa-user"></i> Last Name</label>
+                            </div>
+                            <div class="col-md-6 form-floating">
+                                <input type="email" class="form-control" id="id_email" name="email" value="{{ student.user.email }}" required placeholder="Email">
+                                <label for="id_email"><i class="fas fa-envelope"></i> Email</label>
+                            </div>
+                            <div class="col-md-6 form-floating">
+                                <input type="text" class="form-control" id="id_student_id" name="student_id" value="{{ student.student_id }}" required placeholder="Student ID">
+                                <label for="id_student_id"><i class="fas fa-id-card"></i> Student ID</label>
+                            </div>
+                            <div class="col-12 mt-3 mb-2">
+                                <h6 class="text-primary"><i class="fas fa-phone me-1"></i>Contact Info</h6>
+                            </div>
+                            <div class="col-md-6 form-floating">
+                                <input type="tel" class="form-control" id="id_phone" name="phone" value="{{ student.phone }}" placeholder="Phone Number">
+                                <label for="id_phone"><i class="fas fa-phone"></i> Phone Number</label>
+                            </div>
+                            <div class="col-md-6 form-floating">
+                                <input type="tel" class="form-control" id="id_parent_phone" name="parent_phone" value="{{ student.parent_phone }}" placeholder="Parent's Phone Number">
+                                <label for="id_parent_phone"><i class="fas fa-user-friends"></i> Parent's Phone</label>
+                            </div>
+                            <div class="col-12 form-floating">
+                                <textarea class="form-control" id="id_address" name="address" rows="3" placeholder="Address">{{ student.address }}</textarea>
+                                <label for="id_address"><i class="fas fa-map-marker-alt"></i> Address</label>
+                            </div>
+                            <div class="col-12 d-flex gap-2 mt-3">
+                                <button type="submit" class="btn btn-primary flex-fill">
+                                    <i class="fas fa-save me-1"></i>Save Changes
+                                </button>
+                                <a href="{% url 'download_attendance_report' %}" class="btn btn-outline-primary flex-fill">
+                                    <i class="fas fa-download me-2"></i>Download Report
+                                </a>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <!-- Attendance Tab -->
+                <div class="tab-pane fade" id="attendance" role="tabpanel">
+                    <h6 class="text-primary mb-3"><i class="fas fa-calendar-check me-1"></i>Recent Attendance</h6>
+                    <ul class="list-group mb-3">
+                        {% for record in student.get_recent_attendance %}
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            <span>{{ record.date|date:'F j, Y' }} ({{ record.date|date:'l' }})</span>
+                            {% if record.status %}
+                                <span class="badge bg-success"><i class="fas fa-check-circle me-1"></i>Present</span>
+                            {% else %}
+                                <span class="badge bg-danger"><i class="fas fa-times-circle me-1"></i>Absent</span>
+                            {% endif %}
+                        </li>
+                        {% empty %}
+                        <li class="list-group-item text-center text-muted">No attendance records found</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+                <!-- Leave Tab -->
+                <div class="tab-pane fade" id="leave" role="tabpanel">
+                    <h6 class="text-primary mb-3"><i class="fas fa-plane-departure me-1"></i>Recent Leave Requests</h6>
+                    <ul class="list-group mb-3">
+                        {% for leave in student.get_recent_leave_requests %}
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            <span>{{ leave.from_date|date:'M j' }} - {{ leave.to_date|date:'M j, Y' }}: {{ leave.reason|truncatewords:8 }}</span>
+                            <span class="badge {% if leave.status == 'APPROVED' %}bg-success{% elif leave.status == 'REJECTED' %}bg-danger{% else %}bg-warning text-dark{% endif %}">
+                                <i class="fas fa-info-circle me-1"></i>{{ leave.status|title }}
+                            </span>
+                        </li>
+                        {% empty %}
+                        <li class="list-group-item text-center text-muted">No leave requests found</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+                <!-- Settings Tab -->
+                <div class="tab-pane fade" id="settings" role="tabpanel">
+                    <h6 class="text-primary mb-3"><i class="fas fa-cog me-1"></i>Notification & Privacy Settings</h6>
+                    <form method="post" id="notificationForm">
+                        {% csrf_token %}
+                        <div class="mb-3">
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" id="email_notifications" name="email_notifications" {% if student.email_notifications %}checked{% endif %}>
+                                <label class="form-check-label" for="email_notifications">Email Notifications</label>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" id="sms_notifications" name="sms_notifications" {% if student.sms_notifications %}checked{% endif %}>
+                                <label class="form-check-label" for="sms_notifications">SMS Notifications</label>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" id="leave_request_notifications" name="leave_request_notifications" {% if student.leave_request_notifications %}checked{% endif %}>
+                                <label class="form-check-label" for="leave_request_notifications">Leave Request Updates</label>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" id="news_notifications" name="news_notifications" {% if student.news_notifications %}checked{% endif %}>
+                                <label class="form-check-label" for="news_notifications">News and Announcements</label>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" id="show_profile" name="show_profile" {% if student.show_profile %}checked{% endif %}>
+                                <label class="form-check-label" for="show_profile">Show Profile to Other Students</label>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" id="show_attendance" name="show_attendance" {% if student.show_attendance %}checked{% endif %}>
+                                <label class="form-check-label" for="show_attendance">Show Attendance to Other Students</label>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" id="show_contact" name="show_contact" {% if student.show_contact %}checked{% endif %}>
+                                <label class="form-check-label" for="show_contact">Show Contact Information</label>
+                            </div>
+                        </div>
+                        <div class="text-end">
+                            <button type="submit" class="btn btn-primary rounded-pill">Save Settings</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Change Picture Modal -->
+<div class="modal fade" id="changePictureModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Change Profile Picture</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form method="post" enctype="multipart/form-data" id="pictureForm">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label for="id_profile_picture" class="form-label">Select New Picture</label>
+                        <input type="file" class="form-control" id="id_profile_picture" name="profile_picture" accept="image/*">
+                    </div>
+                    <div class="preview-container text-center mb-3 d-none">
+                        <img id="picturePreview" class="img-fluid rounded" style="max-height: 200px;">
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="submit" form="pictureForm" class="btn btn-primary">Upload</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Change Password Modal -->
+<div class="modal fade" id="changePasswordModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Change Password</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form method="post" id="passwordForm">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label for="id_old_password" class="form-label">Current Password</label>
+                        <input type="password" class="form-control" id="id_old_password" name="old_password" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="id_new_password1" class="form-label">New Password</label>
+                        <input type="password" class="form-control" id="id_new_password1" name="new_password1" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="id_new_password2" class="form-label">Confirm New Password</label>
+                        <input type="password" class="form-control" id="id_new_password2" name="new_password2" required>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="submit" form="passwordForm" class="btn btn-primary">Change Password</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Notification Settings Modal -->
+<div class="modal fade" id="notificationSettingsModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Notification Settings</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form method="post" id="notificationForm">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" id="email_notifications" name="email_notifications" {% if student.email_notifications %}checked{% endif %}>
+                            <label class="form-check-label" for="email_notifications">Email Notifications</label>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" id="sms_notifications" name="sms_notifications" {% if student.sms_notifications %}checked{% endif %}>
+                            <label class="form-check-label" for="sms_notifications">SMS Notifications</label>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" id="leave_request_notifications" name="leave_request_notifications" {% if student.leave_request_notifications %}checked{% endif %}>
+                            <label class="form-check-label" for="leave_request_notifications">Leave Request Updates</label>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" id="news_notifications" name="news_notifications" {% if student.news_notifications %}checked{% endif %}>
+                            <label class="form-check-label" for="news_notifications">News and Announcements</label>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="submit" form="notificationForm" class="btn btn-primary">Save Settings</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Privacy Settings Modal -->
+<div class="modal fade" id="privacySettingsModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Privacy Settings</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form method="post" id="privacyForm">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" id="show_profile" name="show_profile" {% if student.show_profile %}checked{% endif %}>
+                            <label class="form-check-label" for="show_profile">Show Profile to Other Students</label>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" id="show_attendance" name="show_attendance" {% if student.show_attendance %}checked{% endif %}>
+                            <label class="form-check-label" for="show_attendance">Show Attendance to Other Students</label>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" id="show_contact" name="show_contact" {% if student.show_contact %}checked{% endif %}>
+                            <label class="form-check-label" for="show_contact">Show Contact Information</label>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="submit" form="privacyForm" class="btn btn-primary">Save Settings</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.profile-card-modern {
+    background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+    box-shadow: 0 4px 24px rgba(44, 62, 80, 0.08);
+    border: none;
+    position: relative;
+}
+.profile-img-modern {
+    width: 120px;
+    height: 120px;
+    object-fit: cover;
+    border: 4px solid #4CAF50;
+    box-shadow: 0 2px 8px rgba(44, 62, 80, 0.12);
+    margin-bottom: 10px;
+}
+.stat-box-modern {
+    padding: 0.8rem 1rem;
+    border-radius: 1rem;
+    background: linear-gradient(90deg, #e3ffe6 0%, #e3f0ff 100%);
+    box-shadow: 0 2px 8px rgba(44, 62, 80, 0.08);
+    margin-bottom: 0.5rem;
+}
+.settings-card-modern {
+    background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+    border: none;
+    box-shadow: 0 2px 8px rgba(44, 62, 80, 0.08);
+    border-radius: 1rem;
+    margin-bottom: 2rem;
+}
+.nav-tabs .nav-link.active {
+    background: linear-gradient(90deg, #4CAF50 0%, #2196F3 100%);
+    color: #fff;
+    border: none;
+}
+.nav-tabs .nav-link {
+    border-radius: 30px 30px 0 0;
+    color: #2196F3;
+    font-weight: 500;
+}
+.tab-content > .tab-pane {
+    animation: fadeIn 0.2s ease-in;
+}
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+@media (max-width: 767px) {
+    .profile-img-modern {
+        width: 80px;
+        height: 80px;
+    }
+    .profile-card-modern, .settings-card-modern {
+        padding: 1rem;
+    }
+}
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Profile picture preview
+        const pictureInput = document.getElementById('id_profile_picture');
+        const previewContainer = document.querySelector('.preview-container');
+        const picturePreview = document.getElementById('picturePreview');
+
+        pictureInput.addEventListener('change', function() {
+            if (this.files && this.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    picturePreview.src = e.target.result;
+                    previewContainer.classList.remove('d-none');
+                }
+                reader.readAsDataURL(this.files[0]);
+            }
+        });
+
+        // Password validation
+        const passwordForm = document.getElementById('passwordForm');
+        const newPassword1 = document.getElementById('id_new_password1');
+        const newPassword2 = document.getElementById('id_new_password2');
+
+        passwordForm.addEventListener('submit', function(e) {
+            if (newPassword1.value !== newPassword2.value) {
+                e.preventDefault();
+                alert('New passwords do not match!');
+            }
+        });
+
+        // Form validation
+        const forms = document.querySelectorAll('form');
+        forms.forEach(form => {
+            form.addEventListener('submit', function(e) {
+                if (!this.checkValidity()) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                }
+                this.classList.add('was-validated');
+            });
+        });
+    });
+</script>
+{% endblock %} 

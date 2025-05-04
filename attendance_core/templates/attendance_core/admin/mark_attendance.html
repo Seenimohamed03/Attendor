@@ -1,0 +1,797 @@
+{% extends 'attendance_core/base.html' %}
+
+{% block title %}Mark Attendance - Student Attendance System{% endblock %}
+
+{% block page_title %}Mark Attendance{% endblock %}
+
+{% block extra_css %}
+<style>
+    .attendance-container {
+        max-width: 1400px;
+        margin: 0 auto;
+        padding: 2rem;
+    }
+
+    .attendance-header {
+        background: linear-gradient(135deg, #4CAF50 0%, #2196F3 100%);
+        border-radius: 1rem;
+        padding: 2rem;
+        color: white;
+        margin-bottom: 2rem;
+        position: relative;
+        overflow: hidden;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+    }
+
+    .attendance-stats {
+        display: flex;
+        justify-content: space-around;
+        gap: 1rem;
+        margin-top: 1.5rem;
+    }
+
+    .stat-card {
+        background: rgba(255, 255, 255, 0.1);
+        padding: 1.5rem;
+        border-radius: 1rem;
+        text-align: center;
+        min-width: 150px;
+        backdrop-filter: blur(5px);
+    }
+
+    .stat-value {
+        font-size: 2rem;
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+    }
+
+    .stat-label {
+        font-size: 0.875rem;
+        opacity: 0.9;
+    }
+
+    .attendance-content {
+        display: grid;
+        grid-template-columns: 2fr 1fr;
+        gap: 2rem;
+    }
+
+    @media (max-width: 992px) {
+        .attendance-content {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    .attendance-card {
+        background: white;
+        border-radius: 1rem;
+        padding: 1.5rem;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    .attendance-card-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 1.5rem;
+        padding-bottom: 1rem;
+        border-bottom: 1px solid #e9ecef;
+    }
+
+    .attendance-card-title {
+        font-size: 1.25rem;
+        font-weight: 600;
+        color: #2c3e50;
+        margin: 0;
+    }
+
+    .search-filter-container {
+        display: flex;
+        gap: 1rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .search-box {
+        flex: 1;
+        position: relative;
+    }
+
+    .search-box input {
+        padding-left: 2.5rem;
+    }
+
+    .search-box i {
+        position: absolute;
+        left: 1rem;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #6c757d;
+    }
+
+    .class-filter {
+        min-width: 200px;
+    }
+
+    .students-table {
+        width: 100%;
+        border-collapse: separate;
+        border-spacing: 0;
+    }
+
+    .students-table th,
+    .students-table td {
+        padding: 1rem;
+        vertical-align: middle;
+    }
+
+    .students-table th {
+        background: #f8f9fa;
+        font-weight: 600;
+        color: #2c3e50;
+    }
+
+    .students-table tbody tr:hover {
+        background-color: #f8f9fa;
+    }
+
+    .student-avatar {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        object-fit: cover;
+    }
+
+    .status-badge {
+        padding: 0.5rem 1rem;
+        border-radius: 2rem;
+        font-weight: 500;
+        font-size: 0.875rem;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .status-present {
+        background: #e8f5e9;
+        color: #2e7d32;
+    }
+
+    .status-absent {
+        background: #ffebee;
+        color: #c62828;
+    }
+
+    .status-not-marked {
+        background: #f5f5f5;
+        color: #616161;
+    }
+
+    .status-icon {
+        font-size: 1rem;
+    }
+
+    .student-row {
+        transition: background-color 0.2s ease;
+    }
+
+    .student-row:hover {
+        background-color: #f8f9fa;
+    }
+
+    .student-row.selected {
+        background-color: #e3f2fd;
+    }
+
+    .student-info {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    }
+
+    .student-details {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .student-name {
+        font-weight: 500;
+        color: #2c3e50;
+    }
+
+    .student-id {
+        font-size: 0.875rem;
+        color: #6c757d;
+    }
+
+    .student-class {
+        font-size: 0.875rem;
+        color: #6c757d;
+    }
+
+    .bulk-actions {
+        display: flex;
+        gap: 1rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .summary-card {
+        background: white;
+        border-radius: 1rem;
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    .summary-card-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 1rem;
+        padding-bottom: 1rem;
+        border-bottom: 1px solid #e9ecef;
+    }
+
+    .summary-list {
+        max-height: 400px;
+        overflow-y: auto;
+    }
+
+    .summary-item {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        padding: 1rem;
+        border-radius: 0.5rem;
+        margin-bottom: 0.5rem;
+        background: #f8f9fa;
+    }
+
+    .summary-item:last-child {
+        margin-bottom: 0;
+    }
+
+    .summary-avatar {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        object-fit: cover;
+    }
+
+    .summary-info {
+        flex: 1;
+    }
+
+    .summary-name {
+        font-weight: 500;
+        margin-bottom: 0.25rem;
+    }
+
+    .summary-details {
+        font-size: 0.875rem;
+        color: #6c757d;
+    }
+
+    .selected-count {
+        background: #e3f2fd;
+        color: #1976d2;
+        padding: 0.5rem 1rem;
+        border-radius: 2rem;
+        font-weight: 500;
+        font-size: 0.875rem;
+    }
+
+    @media (max-width: 768px) {
+        .attendance-container {
+            padding: 1rem;
+        }
+
+        .attendance-header {
+            padding: 1.5rem;
+        }
+
+        .attendance-stats {
+            flex-direction: column;
+        }
+
+        .search-filter-container {
+            flex-direction: column;
+        }
+
+        .class-filter {
+            width: 100%;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="attendance-container">
+    <!-- Attendance Header -->
+    <div class="attendance-header">
+        <h1 class="text-center mb-4">Mark Attendance</h1>
+        <div class="attendance-stats">
+            <div class="stat-card">
+                <div class="stat-value" id="presentCount">{{ present_students.count }}</div>
+                <div class="stat-label">Present Students</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="absentCount">{{ absent_students.count }}</div>
+                <div class="stat-label">Absent Students</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="totalCount">{{ students.count }}</div>
+                <div class="stat-label">Total Students</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Attendance Content -->
+    <div class="attendance-content">
+        <!-- Main Attendance Section -->
+        <div class="attendance-card">
+            <div class="attendance-card-header">
+                <h2 class="attendance-card-title">Student List</h2>
+                <div class="d-flex align-items-center gap-3">
+                    <span class="selected-count" id="selectedCount">0 selected</span>
+                    <div class="d-flex gap-2">
+                        <button type="button" class="btn btn-warning" id="resetBtn">
+                            <i class="fas fa-undo me-2"></i>Reset Today's Record
+                        </button>
+                        <button type="button" class="btn btn-success" id="markPresentBtn" disabled>
+                            <i class="fas fa-check me-2"></i>Mark Selected Present
+                        </button>
+                        <button type="button" class="btn btn-danger" id="markAbsentBtn" disabled>
+                            <i class="fas fa-times me-2"></i>Mark Selected Absent
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Alert Container -->
+            <div id="alertContainer" class="mb-3"></div>
+
+            <!-- Search and Filter -->
+            <div class="search-filter-container">
+                <div class="search-box">
+                    <i class="fas fa-search"></i>
+                    <input type="text" class="form-control" id="searchInput" placeholder="Search students...">
+                </div>
+                <select class="form-select class-filter" id="classFilter">
+                    <option value="">All Classes</option>
+                    {% for class_section in class_sections %}
+                    <option value="{{ class_section }}">{{ class_section }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <!-- Students Table -->
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th style="width: 50px;">
+                                <input type="checkbox" class="form-check-input" id="selectAll">
+                            </th>
+                            <th style="width: 50px;">Photo</th>
+                            <th>Student Details</th>
+                            <th>Class</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for student in students %}
+                        <tr class="student-row" data-student-id="{{ student.id }}">
+                            <td>
+                                <input type="checkbox" class="form-check-input student-checkbox" name="selected_students[]" value="{{ student.id }}">
+                            </td>
+                            <td>
+                                {% if student.profile_picture %}
+                                <img src="{{ student.profile_picture.url }}" alt="{{ student.user.get_full_name }}" class="student-avatar">
+                                {% else %}
+                                <div class="student-avatar bg-secondary text-white d-flex align-items-center justify-content-center">
+                                    <i class="fas fa-user"></i>
+                                </div>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <div class="student-details">
+                                    <div class="student-name">{{ student.user.get_full_name }}</div>
+                                    <div class="student-id">{{ student.student_id }}</div>
+                                </div>
+                            </td>
+                            <td>
+                                <div class="student-class">{{ student.class_section }}</div>
+                            </td>
+                            <td>
+                                {% if today_attendance.student.id %}
+                                <span class="status-badge status-{{ today_attendance.student.id.status|yesno:'present,absent' }}">
+                                    <i class="fas fa-{{ today_attendance.student.id.status|yesno:'check,times' }} status-icon"></i>
+                                    {{ today_attendance.student.id.status|yesno:'Present,Absent' }}
+                                </span>
+                                {% else %}
+                                <span class="status-badge status-not-marked">
+                                    <i class="fas fa-clock status-icon"></i>
+                                    Not Marked
+                                </span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Summary Section -->
+        <div>
+            <!-- Present Students Summary -->
+            <div class="summary-card">
+                <div class="summary-card-header">
+                    <h3 class="attendance-card-title">Present Students</h3>
+                    <span class="badge bg-success" id="presentBadge">{{ present_students.count }}</span>
+                </div>
+                <div class="summary-list" id="presentStudentsList">
+                    {% for student in present_students %}
+                    <div class="summary-item" data-student-id="{{ student.id }}">
+                        {% if student.profile_picture %}
+                        <img src="{{ student.profile_picture.url }}" alt="{{ student.user.get_full_name }}" class="summary-avatar">
+                        {% else %}
+                        <div class="summary-avatar bg-secondary text-white d-flex align-items-center justify-content-center">
+                            <i class="fas fa-user"></i>
+                        </div>
+                        {% endif %}
+                        <div class="summary-info">
+                            <div class="summary-name">{{ student.user.get_full_name }}</div>
+                            <div class="summary-details">{{ student.student_id }} - {{ student.class_section }}</div>
+                        </div>
+                    </div>
+                    {% empty %}
+                    <div class="text-center text-muted">No students marked present</div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Absent Students Summary -->
+            <div class="summary-card">
+                <div class="summary-card-header">
+                    <h3 class="attendance-card-title">Absent Students</h3>
+                    <span class="badge bg-danger" id="absentBadge">{{ absent_students.count }}</span>
+                </div>
+                <div class="summary-list" id="absentStudentsList">
+                    {% for student in absent_students %}
+                    <div class="summary-item" data-student-id="{{ student.id }}">
+                        {% if student.profile_picture %}
+                        <img src="{{ student.profile_picture.url }}" alt="{{ student.user.get_full_name }}" class="summary-avatar">
+                        {% else %}
+                        <div class="summary-avatar bg-secondary text-white d-flex align-items-center justify-content-center">
+                            <i class="fas fa-user"></i>
+                        </div>
+                        {% endif %}
+                        <div class="summary-info">
+                            <div class="summary-name">{{ student.user.get_full_name }}</div>
+                            <div class="summary-details">{{ student.student_id }} - {{ student.class_section }}</div>
+                        </div>
+                    </div>
+                    {% empty %}
+                    <div class="text-center text-muted">No students marked absent</div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Get CSRF token
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+
+        const csrftoken = getCookie('csrftoken');
+
+        // Get elements
+        const markPresentBtn = document.getElementById('markPresentBtn');
+        const markAbsentBtn = document.getElementById('markAbsentBtn');
+        const resetBtn = document.getElementById('resetBtn');
+        const studentCheckboxes = document.querySelectorAll('.student-checkbox');
+        const selectAllCheckbox = document.getElementById('selectAll');
+        const selectedCount = document.getElementById('selectedCount');
+        const presentCount = document.getElementById('presentCount');
+        const absentCount = document.getElementById('absentCount');
+        const presentList = document.getElementById('presentList');
+        const absentList = document.getElementById('absentList');
+
+        // Update selected count
+        function updateSelectedCount() {
+            const selected = document.querySelectorAll('.student-checkbox:checked').length;
+            selectedCount.textContent = `${selected} selected`;
+            markPresentBtn.disabled = selected === 0;
+            markAbsentBtn.disabled = selected === 0;
+        }
+
+        // Show alert message
+        function showAlert(message, type) {
+            const alertDiv = document.createElement('div');
+            alertDiv.className = `alert alert-${type} alert-dismissible fade show`;
+            alertDiv.innerHTML = `
+                ${message}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            `;
+            
+            const alertContainer = document.getElementById('alertContainer');
+            alertContainer.innerHTML = '';
+            alertContainer.appendChild(alertDiv);
+            
+            // Auto-dismiss after 5 seconds
+            setTimeout(() => {
+                alertDiv.classList.remove('show');
+                setTimeout(() => alertDiv.remove(), 150);
+            }, 5000);
+        }
+
+        // Update student lists
+        function updateStudentLists(presentStudents, absentStudents) {
+            // Update present list
+            presentList.innerHTML = '';
+            presentStudents.forEach(student => {
+                const studentItem = document.createElement('div');
+                studentItem.className = 'list-group-item';
+                studentItem.innerHTML = `
+                    <div class="student-info">
+                        <img src="${student.profile_picture || '/static/images/default-profile.png'}" alt="${student.name}" class="student-avatar">
+                        <div class="student-details">
+                            <div class="student-name">${student.name}</div>
+                            <div class="student-id">${student.student_id}</div>
+                            <div class="student-class">${student.class_section}</div>
+                        </div>
+                    </div>
+                `;
+                presentList.appendChild(studentItem);
+            });
+
+            // Update absent list
+            absentList.innerHTML = '';
+            absentStudents.forEach(student => {
+                const studentItem = document.createElement('div');
+                studentItem.className = 'list-group-item';
+                studentItem.innerHTML = `
+                    <div class="student-info">
+                        <img src="${student.profile_picture || '/static/images/default-profile.png'}" alt="${student.name}" class="student-avatar">
+                        <div class="student-details">
+                            <div class="student-name">${student.name}</div>
+                            <div class="student-id">${student.student_id}</div>
+                            <div class="student-class">${student.class_section}</div>
+                        </div>
+                    </div>
+                `;
+                absentList.appendChild(studentItem);
+            });
+        }
+
+        // Handle checkbox changes
+        studentCheckboxes.forEach(checkbox => {
+            checkbox.addEventListener('change', updateSelectedCount);
+        });
+
+        // Handle select all checkbox
+        selectAllCheckbox.addEventListener('change', function() {
+            studentCheckboxes.forEach(checkbox => {
+                checkbox.checked = this.checked;
+            });
+            updateSelectedCount();
+        });
+
+        // Handle mark present button
+        markPresentBtn.addEventListener('click', function() {
+            const selectedStudents = Array.from(document.querySelectorAll('.student-checkbox:checked'))
+                .map(checkbox => checkbox.value);
+            
+            if (selectedStudents.length === 0) {
+                showAlert('Please select at least one student.', 'warning');
+                return;
+            }
+
+            // Disable buttons and show loading state
+            markPresentBtn.disabled = true;
+            markAbsentBtn.disabled = true;
+            resetBtn.disabled = true;
+            markPresentBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>Marking...';
+
+            fetch(window.location.href, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': csrftoken
+                },
+                body: JSON.stringify({
+                    student_ids: selectedStudents,
+                    status: true,
+                    date: new Date().toISOString().split('T')[0]
+                })
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (data.success) {
+                    // Update counts
+                    presentCount.textContent = data.present_count;
+                    absentCount.textContent = data.absent_count;
+                    
+                    // Update student lists
+                    updateStudentLists(data.present_students, data.absent_students);
+                    
+                    // Clear selections
+                    studentCheckboxes.forEach(checkbox => checkbox.checked = false);
+                    selectAllCheckbox.checked = false;
+                    updateSelectedCount();
+                    
+                    showAlert(data.message, 'success');
+                } else {
+                    showAlert(data.message, 'danger');
+                }
+            })
+            .catch(error => {
+                showAlert('An error occurred while marking attendance.', 'danger');
+                console.error('Error:', error);
+            })
+            .finally(() => {
+                // Re-enable buttons and restore original text
+                markPresentBtn.disabled = false;
+                markAbsentBtn.disabled = false;
+                resetBtn.disabled = false;
+                markPresentBtn.innerHTML = '<i class="fas fa-check me-2"></i>Mark Selected Present';
+            });
+        });
+
+        // Handle mark absent button
+        markAbsentBtn.addEventListener('click', function() {
+            const selectedStudents = Array.from(document.querySelectorAll('.student-checkbox:checked'))
+                .map(checkbox => checkbox.value);
+            
+            if (selectedStudents.length === 0) {
+                showAlert('Please select at least one student.', 'warning');
+                return;
+            }
+
+            // Disable buttons and show loading state
+            markPresentBtn.disabled = true;
+            markAbsentBtn.disabled = true;
+            resetBtn.disabled = true;
+            markAbsentBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>Marking...';
+
+            fetch(window.location.href, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': csrftoken
+                },
+                body: JSON.stringify({
+                    student_ids: selectedStudents,
+                    status: false,
+                    date: new Date().toISOString().split('T')[0]
+                })
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (data.success) {
+                    // Update counts
+                    presentCount.textContent = data.present_count;
+                    absentCount.textContent = data.absent_count;
+                    
+                    // Update student lists
+                    updateStudentLists(data.present_students, data.absent_students);
+                    
+                    // Clear selections
+                    studentCheckboxes.forEach(checkbox => checkbox.checked = false);
+                    selectAllCheckbox.checked = false;
+                    updateSelectedCount();
+                    
+                    showAlert(data.message, 'success');
+                } else {
+                    showAlert(data.message, 'danger');
+                }
+            })
+            .catch(error => {
+                showAlert('An error occurred while marking attendance.', 'danger');
+                console.error('Error:', error);
+            })
+            .finally(() => {
+                // Re-enable buttons and restore original text
+                markPresentBtn.disabled = false;
+                markAbsentBtn.disabled = false;
+                resetBtn.disabled = false;
+                markAbsentBtn.innerHTML = '<i class="fas fa-times me-2"></i>Mark Selected Absent';
+            });
+        });
+
+        // Handle reset button
+        resetBtn.addEventListener('click', function() {
+            if (!confirm('Are you sure you want to reset today\'s attendance record? This action cannot be undone.')) {
+                return;
+            }
+
+            // Disable buttons and show loading state
+            markPresentBtn.disabled = true;
+            markAbsentBtn.disabled = true;
+            resetBtn.disabled = true;
+            resetBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>Resetting...';
+
+            fetch(window.location.href, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': csrftoken
+                },
+                body: JSON.stringify({
+                    reset: true,
+                    date: new Date().toISOString().split('T')[0]
+                })
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (data.success) {
+                    // Update counts
+                    presentCount.textContent = data.present_count;
+                    absentCount.textContent = data.absent_count;
+                    
+                    // Clear student lists
+                    presentList.innerHTML = '';
+                    absentList.innerHTML = '';
+                    
+                    // Clear selections
+                    studentCheckboxes.forEach(checkbox => checkbox.checked = false);
+                    selectAllCheckbox.checked = false;
+                    updateSelectedCount();
+                    
+                    showAlert(data.message, 'success');
+                } else {
+                    showAlert(data.message, 'danger');
+                }
+            })
+            .catch(error => {
+                showAlert('An error occurred while resetting attendance.', 'danger');
+                console.error('Error:', error);
+            })
+            .finally(() => {
+                // Re-enable buttons and restore original text
+                markPresentBtn.disabled = false;
+                markAbsentBtn.disabled = false;
+                resetBtn.disabled = false;
+                resetBtn.innerHTML = '<i class="fas fa-undo me-2"></i>Reset Today\'s Record';
+            });
+        });
+
+        // Initialize selected count
+        updateSelectedCount();
+    });
+</script>
+{% endblock %}
+

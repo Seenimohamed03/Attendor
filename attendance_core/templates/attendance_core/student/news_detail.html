@@ -1,0 +1,64 @@
+{% extends 'attendance_core/base.html' %}
+{% load static %}
+
+{% block title %}News Detail - {{ news.title }}{% endblock %}
+
+{% block page_title %}News Detail{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <h2 class="card-title mb-4">{{ news.title }}</h2>
+                    
+                    {% if news.image %}
+                        <div class="mb-4">
+                            <img src="{{ news.image.url }}" 
+                                 alt="{{ news.title }}" 
+                                 class="img-fluid rounded"
+                                 style="max-height: 400px; width: 100%; object-fit: cover;"
+                                 onerror="this.onerror=null; this.src='{% static 'images/default-news.jpg' %}'">
+                        </div>
+                    {% endif %}
+                    
+                    <div class="news-content mb-4">
+                        {{ news.description|linebreaks }}
+                    </div>
+                    
+                    <div class="news-meta">
+                        <p class="text-muted mb-0">
+                            Posted by: {{ news.posted_by.get_full_name|default:news.posted_by.username }}
+                            <br>
+                            Posted on: {{ news.created_at|date:"F j, Y, g:i a" }}
+                            {% if news.updated_at != news.created_at %}
+                            <br>
+                            Last updated: {{ news.updated_at|date:"F j, Y, g:i a" }}
+                            {% endif %}
+                        </p>
+                    </div>
+                    
+                    <div class="mt-4">
+                        <a href="{% url 'student_news' %}" class="btn btn-secondary">
+                            <i class="fas fa-arrow-left me-2"></i>Back to News
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .news-content {
+        font-size: 1.1rem;
+        line-height: 1.6;
+    }
+    .news-content img {
+        max-width: 100%;
+        height: auto;
+        margin: 1rem 0;
+    }
+</style>
+{% endblock %} 

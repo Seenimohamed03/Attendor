@@ -1,0 +1,553 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - Attend Ease</title>
+    <style>
+        :root {
+            --primary-color: #4CAF50;
+            --error-color: #f44336;
+            --success-color: #4CAF50;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .login-container {
+            background: white;
+            padding: 2rem;
+            border-radius: 10px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 400px;
+            animation: slideUp 0.5s ease;
+        }
+
+        @keyframes slideUp {
+            from { transform: translateY(20px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        .login-header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .login-header h1 {
+            color: #333;
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+            position: relative;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: #666;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 0.8rem;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+            font-size: 1rem;
+            transition: border-color 0.3s ease;
+        }
+
+        .form-group input:focus {
+            border-color: var(--primary-color);
+            outline: none;
+        }
+
+        .password-toggle {
+            position: absolute;
+            right: 10px;
+            top: 35px;
+            cursor: pointer;
+            color: #666;
+        }
+
+        .remember-me {
+            display: flex;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .remember-me input {
+            margin-right: 0.5rem;
+        }
+
+        .btn {
+            width: 100%;
+            padding: 0.8rem;
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        .btn:hover {
+            background-color: #45a049;
+        }
+
+        .error-message {
+            color: var(--error-color);
+            margin-bottom: 1rem;
+            padding: 0.5rem;
+            border-radius: 5px;
+            background-color: #ffebee;
+            text-align: center;
+            display: none;
+        }
+
+        .success-message {
+            color: var(--success-color);
+            margin-bottom: 1rem;
+            padding: 0.5rem;
+            border-radius: 5px;
+            background-color: #e8f5e9;
+            text-align: center;
+            display: none;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            margin-top: 1rem;
+        }
+
+        .loading::after {
+            content: '';
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 2px solid #f3f3f3;
+            border-top: 2px solid var(--primary-color);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Modal Styles */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .modal.show {
+            display: flex;
+            opacity: 1;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 1rem;
+            padding: 2rem;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 500px;
+            margin: auto;
+            position: relative;
+            transform: translateY(-20px);
+            transition: transform 0.3s ease;
+        }
+
+        .modal.show .modal-content {
+            transform: translateY(0);
+        }
+
+        .modal-header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .modal-icon {
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, #4CAF50 0%, #2196F3 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 1.5rem;
+            color: white;
+            font-size: 2rem;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .modal-title {
+            font-size: 1.75rem;
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 0.5rem;
+        }
+
+        .modal-subtitle {
+            color: #6c757d;
+            font-size: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .modal-close {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            color: #6c757d;
+            cursor: pointer;
+            transition: color 0.3s ease;
+        }
+
+        .modal-close:hover {
+            color: #2c3e50;
+        }
+
+        .input-group {
+            display: flex;
+            align-items: center;
+            background: #f8f9fa;
+            border-radius: 0.5rem;
+            overflow: hidden;
+        }
+
+        .input-group-text {
+            padding: 0.75rem 1rem;
+            color: #6c757d;
+            background: none;
+            border: none;
+        }
+
+        .input-group input {
+            border: none;
+            background: none;
+            padding: 0.75rem 1rem;
+            flex: 1;
+        }
+
+        .input-group input:focus {
+            box-shadow: none;
+        }
+
+        .btn-secondary {
+            background: #f8f9fa;
+            border: 2px solid #e9ecef;
+            color: #2c3e50;
+            margin-top: 1rem;
+        }
+
+        .btn-secondary:hover {
+            background: #e9ecef;
+        }
+
+        @media (max-width: 576px) {
+            .modal-content {
+                padding: 1.5rem;
+                margin: 1rem;
+            }
+
+            .modal-icon {
+                width: 60px;
+                height: 60px;
+                font-size: 1.5rem;
+            }
+
+            .modal-title {
+                font-size: 1.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="login-container">
+        <div class="login-header">
+            <img src="/static/images/background/app logo.png" alt="Attend Ease Logo" style="height: 60px; vertical-align: middle; margin-right: 10px; border-radius: 50%;">
+            <h1 style="display: inline-block; vertical-align: middle;">Attend Ease</h1>
+            <p style="display: inline-block; vertical-align: middle;">Please login to continue</p>
+        </div>
+
+        {% if messages %}
+            <div class="alert alert-danger">
+                {% for message in messages %}
+                {{ message }}
+                {% endfor %}
+            </div>
+        {% endif %}
+
+        <form method="post" action="{% url 'login' %}" id="loginForm">
+            {% csrf_token %}
+            <div class="form-group">
+                <label for="username">Username</label>
+                <input type="text" id="username" name="username" required>
+                <div class="error-message" id="username-error"></div>
+            </div>
+
+            <div class="form-group">
+                <label for="password">Password</label>
+                <input type="password" id="password" name="password" required>
+                <span class="password-toggle" onclick="togglePassword()">👁️</span>
+                <div class="error-message" id="password-error"></div>
+            </div>
+
+            <div class="remember-me">
+                <input type="checkbox" id="remember" name="remember">
+                <label for="remember">Remember me</label>
+            </div>
+
+            <div class="d-grid gap-2">
+                <button type="submit" class="btn btn-primary">Login</button>
+            </div>
+            <div class="text-center mt-3">
+                <a href="#" class="text-decoration-none" onclick="showForgotPasswordModal()">Forgot Password?</a>
+            </div>
+            <div class="loading" id="loading"></div>
+            <div class="error-message" id="form-error"></div>
+            <div class="success-message" id="form-success"></div>
+        </form>
+    </div>
+
+    <!-- Logout Confirmation Modal -->
+    <div class="modal fade" id="logoutModal" tabindex="-1" aria-labelledby="logoutModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="logoutModalLabel">Confirm Logout</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body text-center">
+                    <i class="fas fa-sign-out-alt fa-3x text-warning mb-3"></i>
+                    <p>Are you sure you want to logout?</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <a href="{% url 'logout' %}" class="btn btn-warning">Logout</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Forgot Password Modal -->
+    <div class="modal" id="forgotPasswordModal">
+        <div class="modal-content">
+            <button class="modal-close" onclick="hideForgotPasswordModal()">&times;</button>
+            <div class="modal-header">
+                <div class="modal-icon">
+                    <i class="fas fa-key"></i>
+                </div>
+                <h2 class="modal-title">Forgot Password?</h2>
+                <p class="modal-subtitle">Enter your email address and we'll send you a link to reset your password.</p>
+            </div>
+
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="alert alert-{{ message.tags }}">
+                        <i class="fas fa-info-circle me-2"></i>{{ message }}
+                    </div>
+                {% endfor %}
+            {% endif %}
+            
+            <form method="post" action="{% url 'forgot_password' %}" id="forgotPasswordForm">
+                {% csrf_token %}
+                <div class="form-group">
+                    <label class="form-label" for="email">Email Address</label>
+                    <div class="input-group">
+                        <span class="input-group-text">
+                            <i class="fas fa-envelope"></i>
+                        </span>
+                        <input type="email" id="email" name="email" placeholder="Enter your email address" required>
+                    </div>
+                </div>
+                <div class="d-grid gap-2">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-paper-plane me-2"></i>Send Reset Link
+                    </button>
+                    <button type="button" class="btn btn-secondary" onclick="hideForgotPasswordModal()">
+                        <i class="fas fa-arrow-left me-2"></i>Back to Login
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        function togglePassword() {
+            const passwordInput = document.getElementById('password');
+            passwordInput.type = passwordInput.type === 'password' ? 'text' : 'password';
+        }
+
+        function showForgotPasswordModal() {
+            const modal = document.getElementById('forgotPasswordModal');
+            modal.classList.add('show');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function hideForgotPasswordModal() {
+            const modal = document.getElementById('forgotPasswordModal');
+            modal.classList.remove('show');
+            document.body.style.overflow = '';
+        }
+
+        // Close modal when clicking outside
+        document.getElementById('forgotPasswordModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                hideForgotPasswordModal();
+            }
+        });
+
+        // Handle forgot password form submission
+        document.getElementById('forgotPasswordForm').addEventListener('submit', function(e) {
+            const submitButton = this.querySelector('button[type="submit"]');
+            if (submitButton) {
+                submitButton.disabled = true;
+                submitButton.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Sending...';
+            }
+        });
+
+        // Handle login form submission
+        document.getElementById('loginForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            // Reset error messages
+            document.querySelectorAll('.error-message').forEach(el => el.style.display = 'none');
+            document.getElementById('form-success').style.display = 'none';
+            
+            // Show loading
+            document.getElementById('loading').style.display = 'block';
+            
+            const formData = new FormData(e.target);
+            
+            try {
+                const response = await fetch(e.target.action, {
+                    method: 'POST',
+                    body: formData,
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                });
+
+                if (response.redirected) {
+                    // If the server redirects, follow the redirect
+                    window.location.href = response.url;
+                    return;
+                }
+
+                const contentType = response.headers.get('content-type');
+                if (contentType && contentType.includes('application/json')) {
+                    const data = await response.json();
+                    
+                    if (response.ok) {
+                        document.getElementById('form-success').textContent = 'Login successful! Redirecting...';
+                        document.getElementById('form-success').style.display = 'block';
+                        setTimeout(() => {
+                            window.location.href = data.redirect_url || '/';
+                        }, 1000);
+                    } else {
+                        if (data.errors) {
+                            Object.entries(data.errors).forEach(([field, error]) => {
+                                if (error) {
+                                    const errorElement = document.getElementById(`${field}-error`);
+                                    if (errorElement) {
+                                        errorElement.textContent = error;
+                                        errorElement.style.display = 'block';
+                                    }
+                                }
+                            });
+                        } else if (data.message) {
+                            document.getElementById('form-error').textContent = data.message;
+                            document.getElementById('form-error').style.display = 'block';
+                        } else {
+                            document.getElementById('form-error').textContent = 'Invalid username or password. Please try again.';
+                            document.getElementById('form-error').style.display = 'block';
+                        }
+                    }
+                } else {
+                    // If the response is not JSON, it's likely a redirect or error page
+                    if (response.ok) {
+                        window.location.href = response.url;
+                    } else {
+                        document.getElementById('form-error').textContent = 'An error occurred. Please try again.';
+                        document.getElementById('form-error').style.display = 'block';
+                    }
+                }
+            } catch (error) {
+                console.error('Login error:', error);
+                document.getElementById('form-error').textContent = 'An error occurred. Please try again.';
+                document.getElementById('form-error').style.display = 'block';
+            } finally {
+                document.getElementById('loading').style.display = 'none';
+            }
+        });
+
+        // Add real-time validation
+        document.getElementById('username').addEventListener('input', (e) => {
+            const username = e.target.value;
+            const errorElement = document.getElementById('username-error');
+            
+            if (username.length < 3) {
+                errorElement.textContent = 'Username must be at least 3 characters long';
+                errorElement.style.display = 'block';
+            } else {
+                errorElement.style.display = 'none';
+            }
+        });
+
+        document.getElementById('password').addEventListener('input', (e) => {
+            const password = e.target.value;
+            const errorElement = document.getElementById('password-error');
+            
+            if (password.length < 6) {
+                errorElement.textContent = 'Password must be at least 6 characters long';
+                errorElement.style.display = 'block';
+            } else {
+                errorElement.style.display = 'none';
+            }
+        });
+
+        // Handle logout confirmation
+        document.addEventListener('DOMContentLoaded', function() {
+            const logoutLinks = document.querySelectorAll('a[href="{% url 'logout' %}"]');
+            logoutLinks.forEach(link => {
+                link.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const logoutModal = new bootstrap.Modal(document.getElementById('logoutModal'));
+                    logoutModal.show();
+                });
+            });
+        });
+    </script>
+</body>
+</html>

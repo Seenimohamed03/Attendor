@@ -1,0 +1,151 @@
+{% extends "admin/base_site.html" %}
+{% load i18n static %}
+
+{% block extrastyle %}
+{{ block.super }}
+<style>
+    .dashboard {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 20px;
+        padding: 20px;
+    }
+
+    .dashboard-card {
+        background: white;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        padding: 20px;
+        transition: transform 0.2s;
+    }
+
+    .dashboard-card:hover {
+        transform: translateY(-5px);
+    }
+
+    .dashboard-card h2 {
+        color: var(--primary-color);
+        margin-bottom: 15px;
+        font-size: 1.2em;
+    }
+
+    .dashboard-card ul {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
+
+    .dashboard-card li {
+        padding: 8px 0;
+        border-bottom: 1px solid #eee;
+    }
+
+    .dashboard-card li:last-child {
+        border-bottom: none;
+    }
+
+    .dashboard-card a {
+        color: var(--text-color);
+        text-decoration: none;
+        display: flex;
+        align-items: center;
+    }
+
+    .dashboard-card a:hover {
+        color: var(--primary-color);
+    }
+
+    .dashboard-card .icon {
+        margin-right: 10px;
+        color: var(--primary-color);
+    }
+
+    .recent-actions {
+        grid-column: 1 / -1;
+    }
+
+    .recent-actions h2 {
+        margin-bottom: 20px;
+    }
+
+    .recent-actions table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    .recent-actions th {
+        background: var(--primary-color);
+        color: white;
+        padding: 10px;
+        text-align: left;
+    }
+
+    .recent-actions td {
+        padding: 10px;
+        border-bottom: 1px solid #eee;
+    }
+
+    .recent-actions tr:hover {
+        background-color: #f8f9fa;
+    }
+</style>
+{% endblock %}
+
+{% block coltype %}colMS{% endblock %}
+
+{% block bodyclass %}{{ block.super }} dashboard{% endblock %}
+
+{% block breadcrumbs %}{% endblock %}
+
+{% block content %}
+<div class="dashboard">
+    {% if app_list %}
+        {% for app in app_list %}
+            <div class="dashboard-card">
+                <h2>
+                    <a href="{{ app.app_url }}" class="section">
+                        <i class="icon fas fa-{{ app.icon|default:'cog' }}"></i>
+                        {{ app.name }}
+                    </a>
+                </h2>
+                <ul>
+                    {% for model in app.models %}
+                        <li>
+                            <a href="{{ model.admin_url }}">
+                                <i class="icon fas fa-{{ model.icon|default:'file' }}"></i>
+                                {{ model.name }}
+                            </a>
+                        </li>
+                    {% endfor %}
+                </ul>
+            </div>
+        {% endfor %}
+    {% else %}
+        <p>{% trans 'You don't have permission to view or edit anything.' %}</p>
+    {% endif %}
+
+    {% if recent_actions %}
+        <div class="dashboard-card recent-actions">
+            <h2>{% trans 'Recent Actions' %}</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>{% trans 'Action' %}</th>
+                        <th>{% trans 'Object' %}</th>
+                        <th>{% trans 'Time' %}</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for action in recent_actions %}
+                        <tr>
+                            <td>{{ action.action_flag }}</td>
+                            <td>{{ action.object_repr }}</td>
+                            <td>{{ action.action_time|date:"DATETIME_FORMAT" }}</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% endif %}
+</div>
+{% endblock %} 
