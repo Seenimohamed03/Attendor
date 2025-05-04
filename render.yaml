@@ -15,12 +15,12 @@ services:
         fromDatabase:
           name: attendance-db
           property: connectionString
-      - key: mself9060@gmail.com
-        sync: true
-      - key: admin123
-        sync: true
-      - key: mself9060@gmail.com
-        sync: true
+      - key: EMAIL_HOST_USER
+        sync: false
+      - key: EMAIL_HOST_PASSWORD
+        sync: false
+      - key: DEFAULT_FROM_EMAIL
+        sync: false
 
 databases:
   - name: attendance-db
